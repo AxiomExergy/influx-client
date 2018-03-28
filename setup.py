@@ -1,0 +1,27 @@
+from setuptools import setup, find_packages
+
+
+# Used for installing test dependencies directly
+tests_require = [
+    'mock',
+    'nose',
+    'flake8',
+]
+
+setup(
+    name='influx-client',
+    version='1.0.0',
+    description="InfluxDB client",
+    author="Jacob Alheid",
+    author_email="shakefu@gmail.com",
+    packages=find_packages(exclude=['test', 'test_*', 'fixtures']),
+    install_requires=[
+        'pytool',
+        'requests',
+        'simplejson',
+        ],
+    test_suite='nose.collector',
+    tests_require=tests_require,
+    # For installing test dependencies directly
+    extras_require={'test': tests_require},
+)
