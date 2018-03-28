@@ -16,4 +16,5 @@ InfluxDB client compatible with 1.5.
 
 ## Changelog
 
-See [Releases](./releases) for detailed release notes.
+See [Releases](https://github.com/AxiomExergy/influx-client/releases) for
+detailed release notes.
