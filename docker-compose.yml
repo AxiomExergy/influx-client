@@ -1,0 +1,13 @@
+version: '3.5'
+services:
+  ingest:
+    build:
+      context: .
+    command: ${INFLUX_COMMAND:-nosetests -v}
+    environment:
+      INFLUX_URL: http://influx:8086
+    links:
+      - influx
+  influx:
+    image: influxdb:${INFLUX_VERSION:-1.5}
+
