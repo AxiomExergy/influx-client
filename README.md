@@ -78,7 +78,7 @@ This section describes development and contribution for *influx-client*.
 
 This section describes the public API for *influx-client*.
 
-### `influx.InfluxDB(`*`url`*`)`
+### `InfluxDB(`*`url`*`)`
 
 This is the main InfluxDB client. It works as a singleton instance per *url*.
 In threaded or event loop based environments it relies on the *requests*
@@ -87,21 +87,21 @@ safety.
 
 - **url** (*str*) - URL to InfluxDB API (such as `'http://127.0.0.1:8086'`)
 
-#### `#.create_database(`*`database`*`)`
+#### `.create_database(`*`database`*`)`
 
 Issues a `CREATE DATABASE ...` request to the InfluxDB API. This is an
 idempotent operation.
 
 - **database** (*str*) - Database name
 
-#### `#.drop_database(`*`database`*`)`
+#### `.drop_database(`*`database`*`)`
 
 Issues a `DROP DATABASE ...` request to the InfluxDB API. This will raise a 404
 HTTPError if the database does not exist.
 
 - **database** (*str*) - Database name
 
-#### `#.write(`*`database, measurement, fields, tags={}, time=None`*`)`
+#### `.write(`*`database, measurement, fields, tags={}, time=None`*`)`
 
 Write data points to the specified *database* and *measurement*.
 
