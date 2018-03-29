@@ -113,6 +113,12 @@ Write data points to the specified *database* and *measurement*.
 - **time** (*datetime*, optional) - Datetime to use instead of InfluxDB's
   server-side "now"
 
+## License
+
+This repository and its codebase are made public under the [Apache License
+v2.0](./LICENSE). We ask that if you do use this work please attribute [Axiom
+Exergy](http://www.axiomexergy.com) and link to the original repository.
+
 ## Changelog
 
 See [Releases](https://github.com/AxiomExergy/influx-client/releases) for
