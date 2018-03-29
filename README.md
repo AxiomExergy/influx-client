@@ -113,6 +113,20 @@ Write data points to the specified *database* and *measurement*.
 - **time** (*datetime*, optional) - Datetime to use instead of InfluxDB's
   server-side "now"
 
+#### `.select_recent(`*`database, measurement, fields='*', tags={}, relative_time='15m'`*`)`
+
+Query the InfluxDB API for *measurement* in *database*, using the *fields*
+string, limited to matching *tags* for the recent *relative_time*.
+
+Returns the raw JSON response from InfluxDB.
+
+- **database** (*str*) - Database name
+- **measurement** (*str*) - Measurement name
+- **fields** (*str*, default `'*'`) - String formatted fields for `SELECT`
+  query
+- **tags** (*dict*, optional) - Dictionary of *tag_name: value* tags to match
+- **relative_time** (*str*, default `'15m'`) - Relative time string
+
 ## License
 
 This repository and its codebase are made public under the [Apache License
