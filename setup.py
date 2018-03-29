@@ -33,5 +33,11 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Utilities',
         'Topic :: Database',
-        ]
+        ],
+    url="https://github.com/AxiomExergy/influx-client/",
+    project_urls={
+        "Bug Tracker": "https://github.com/AxiomExergy/influx-client/issues",
+        "Documentation": "https://github.com/AxiomExergy/influx-client/",
+        "Source Code": "https://github.com/AxiomExergy/influx-client/",
+    }
 )
