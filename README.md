@@ -60,6 +60,9 @@ client.create_database('mydatabase')
 client.write('mydatabase', 'mymeasurement', fields={'value': 1.0},
              tags={'env': 'example'})
 
+# You can query for data relative to now()
+data = client.select_recent('mydatabase', 'mymeasurement', time_relative='1h')
+
 # You can clean up after yourself, for example in testing environments
 client.drop_database('mydatabase')
 
