@@ -346,7 +346,7 @@ class InfluxDB:
 
         """
         where = []
-        for tag, value in tags.items():
+        for tag, value in sorted(tags.items()):
             tag = '"{}"'.format(tag)
             if isinstance(value, (list, tuple)):
                 value = ["'{}'".format(i) for i in value]
