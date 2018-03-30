@@ -75,7 +75,37 @@ client is client2  # This is True
 
 This section describes development and contribution for *influx-client*.
 
-*TODO: Document this*
+### Repository Layout
+
+There are a few important pieces in this repository:
+
+- `influx/` - The influx Python package
+- `test/` - Python nosetests
+- `Dockerfile`, `docker-compose.yml` - Docker configuration for testing
+- `LICENSE`, `README.md` - Documentation and legal
+
+### Running Tests
+
+You can run the full test suite with supporting InfluxDB instance using
+*docker-compose*.
+
+The following command will build the test image and run all tests:
+
+```bash
+docker-compose up --build --force-recreate --remove-orphans --exit-code-from influx
+```
+
+When tests are complete, you can clean up supporting services using:
+
+```bash
+docker-compose down
+```
+
+### Making Pull Requests
+
+Pull requests must pass CI to be considered for inclusion. If your pull request
+does not have squashed commits, your commits should follow the *topic:
+description* style. See the commit history for examples.
 
 ## API
 
