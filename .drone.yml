@@ -1,0 +1,44 @@
+pipeline:
+  # Build pushed commits for testing, without pushing new images
+  build:
+    image: docker/compose:1.19.0
+    volumes: ["/var/run/docker.sock:/var/run/docker.sock"]
+    commands:
+      - docker-compose up --build --force-recreate --remove-orphans --exit-code-from influx_client
+      - docker-compose down --rmi local --remove-orphans
+    when:
+      event: push
+  # Report build statuses to Slack
+  slack:
+    image: plugins/slack
+    secrets:
+      - slack_webhook
+    webhook: ${SLACK_WEBHOOK}
+    channel: drone-ci
+    username: ingest
+    when:
+      status:
+        - success
+        - failure
+      event:
+        - push
+        - tag
+    template: >
+      {{#success build.status~}}
+      :white_check_mark: Success! {{~else~}} :x: Failure:
+      {{~/success}}
+      {{#if build.tag}}Tag and publish {{~else~}} Build {{~/if}}
+      <{{build.link}}|#{{build.number}}> for
+      <https://github.com/{{repo.owner}}/{{repo.name}}|{{repo.name}}>
+      {{#if build.pull~}}
+      (<https://github.com/{{repo.owner}}/{{repo.name}}/pull/{{build.pull}}|{{truncate build.commit 8}}>)
+      {{~else~}}
+      (<https://github.com/{{repo.owner}}/{{repo.name}}/commit/{{build.commit}}|{{truncate build.commit 8}}>)
+      {{~/if~}}
+      {{#if build.tag}}
+      (<https://github.com/{{repo.owner}}/{{repo.name}}/releases/tag/{{build.tag}}|{{build.tag}}>)
+      {{~else}}
+      (<https://github.com/{{repo.owner}}/{{repo.name}}/tree/{{build.branch}}|{{build.branch}}>)
+      {{~/if}}
+      by <https://github.com/{{build.author}}|{{build.author}}>
+      in {{since build.started}}

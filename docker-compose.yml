@@ -1,6 +1,6 @@
 version: '3.5'
 services:
-  ingest:
+  influx_client:
     build:
       context: .
     command: ${INFLUX_COMMAND:-nosetests -v}
