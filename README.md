@@ -14,7 +14,7 @@ If you want to support any other environments, please submit a pull request.
 
 ## Installation
 
-You can install this client via PyPI:
+You can install this client [via PyPI](https://pypi.org/project/influx-client):
 
 ```bash
 $ pip install influx-client
@@ -74,6 +74,18 @@ client is client2  # This is True
 ## Development
 
 This section describes development and contribution for *influx-client*.
+
+- Development is [on GitHub](https://github.com/AxiomExergy/influx-client).
+- Installation is [via PyPI](https://pypi.org/project/influx-client).
+- Issues are [on Github](https://github.com/AxiomExergy/influx-client/issues).
+- Releases are [on
+  GitHub](https://github.com/AxiomExergy/influx-client/releases).
+
+### Contributors
+
+This section lists everyone who has contributed to this project.
+
+- [shakefu](https://github.com/shakefu) (*Creator, Maintainer*)
 
 ### Repository Layout
 
