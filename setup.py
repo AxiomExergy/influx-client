@@ -40,7 +40,7 @@ setup(
     tests_require=tests_require,
     # For installing test dependencies directly
     extras_require={'test': tests_require},
-    keywords=['database', 'influx', 'influxdb', 'client'],
+    keywords=['influx-client', 'database', 'influx', 'influxdb', 'client'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
