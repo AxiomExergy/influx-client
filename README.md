@@ -16,14 +16,18 @@ If you want to support any other environments, please submit a pull request.
 
 You can install this client [via PyPI](https://pypi.org/project/influx-client):
 
-`$ pip install influx-client`
+```bash
+$ pip install influx-client
+```
 
 Or by cloning this repository:
 
-    $ git clone https://github.com/AxiomExergy/influx-client.git
-    $ cd influx-client
-    $ pip install .  # For a regular install
-    $ python setup.py develop  # OR for a development install
+```bash
+$ git clone https://github.com/AxiomExergy/influx-client.git
+$ cd influx-client
+$ pip install .  # For a regular install
+$ python setup.py develop  # OR for a development install
+```
 
 ## Usage
 
@@ -39,31 +43,33 @@ If the InfluxDB API returns an error that the chosen database does not exist,
 the client will issue a `CREATE DATABASE ...` query, followed by retrying the
 write request.
 
-    from influx import InfluxDB
+```python
+from influx import InfluxDB
 
-    # This creates the client instance... subsequent calls with the same URL
-    # will return the exact same instance, allowing you to use socket pooling
-    # for faster requests with less resources.
-    client = InfluxDB('http://127.0.0.1:8086')
+# This creates the client instance... subsequent calls with the same URL will
+# return the exact same instance, allowing you to use socket pooling for faster
+# requests with less resources.
+client = InfluxDB('http://127.0.0.1:8086')
 
-    # Creating the database is optional - calls to write() will try to create
-    # the database if it does not exist.
-    client.create_database('mydatabase')
+# Creating the database is optional - calls to write() will try to create the
+# database if it does not exist.
+client.create_database('mydatabase')
 
-    # You can write as many fields and tags as you like, or override the *time*
-    # for the data points
-    client.write('mydatabase', 'mymeasurement', fields={'value': 1.0},
-                 tags={'env': 'example'})
+# You can write as many fields and tags as you like, or override the *time* for
+# the data points
+client.write('mydatabase', 'mymeasurement', fields={'value': 1.0},
+             tags={'env': 'example'})
 
-    # You can query for data relative to now()
-    data = client.select_recent('mydatabase', 'mymeasurement', time_relative='1h')
+# You can query for data relative to now()
+data = client.select_recent('mydatabase', 'mymeasurement', time_relative='1h')
 
-    # You can clean up after yourself, for example in testing environments
-    client.drop_database('mydatabase')
+# You can clean up after yourself, for example in testing environments
+client.drop_database('mydatabase')
 
-    # Subsequent client creation will give the same instance
-    client2 = InfluxDB('http://127.0.0.1:8086')
-    client is client2  # This is True
+# Subsequent client creation will give the same instance
+client2 = InfluxDB('http://127.0.0.1:8086')
+client is client2  # This is True
+```
 
 ## Development
 
@@ -97,11 +103,15 @@ You can run the full test suite with supporting InfluxDB instance using
 
 The following command will build the test image and run all tests:
 
-`docker-compose up --build --force-recreate --remove-orphans --exit-code-from influx`
+```bash
+docker-compose up --build --force-recreate --remove-orphans --exit-code-from influx
+```
 
 When tests are complete, you can clean up supporting services using:
 
-`docker-compose down`
+```bash
+docker-compose down
+```
 
 ### Making Pull Requests
 
