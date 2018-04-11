@@ -60,6 +60,10 @@ client.create_database('mydatabase')
 client.write('mydatabase', 'mymeasurement', fields={'value': 1.0},
              tags={'env': 'example'})
 
+# You can write multiple datapoints at a time
+client.write_many('mydatabase', 'mymeasurement', fields=['value', 'alpha'],
+                  values=[[1.0, 0.5], [1.1, 0.6]], tags={'env': 'example'})
+
 # You can query for data relative to now()
 data = client.select_recent('mydatabase', 'mymeasurement', time_relative='1h')
 
@@ -157,6 +161,18 @@ Write data points to the specified *database* and *measurement*.
   associate with the data points
 - **time** (*datetime*, optional) - Datetime to use instead of InfluxDB's
   server-side "now"
+
+#### `.write_many(`*`database, measurement, fields, tags={}, time=None`*`)`
+
+Write data points to the specified *database* and *measurement*.
+
+- **database** (*str*) - Database name
+- **measurement** (*str*) - Measurement name
+- **fields** (*list*) - List of field names, ordered the same as *values*
+- **values** (*list*) - List of values (list of lists)
+- **tags** (*dict*, optional) - Dictionary of *tag_name: value* tags to
+  associate with the data points
+- **time_field** (*str*, optional) - Field name to extract and use as timestamp
 
 #### `.select_recent(`*`database, measurement, fields='*', tags={}, relative_time='15m'`*`)`
 
