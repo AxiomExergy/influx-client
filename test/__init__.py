@@ -148,6 +148,7 @@ def test_write_many_with_ts():
 
     now = pytool.time.utcnow()
     now = pytool.time.toutctimestamp(now)
+    now = math.floor(now) * 1.0  # Strip ms to prevent rounding differences
 
     db = 'test_write_many'
     measurement = _get_unique_measurement()
