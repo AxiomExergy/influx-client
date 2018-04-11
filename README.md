@@ -158,6 +158,18 @@ Write data points to the specified *database* and *measurement*.
 - **time** (*datetime*, optional) - Datetime to use instead of InfluxDB's
   server-side "now"
 
+#### `.write_many(`*`database, measurement, fields, tags={}, time=None`*`)`
+
+Write data points to the specified *database* and *measurement*.
+
+- **database** (*str*) - Database name
+- **measurement** (*str*) - Measurement name
+- **fields** (*list*) - List of field names, ordered the same as *values*
+- **values** (*list*) - List of values (list of lists)
+- **tags** (*dict*, optional) - Dictionary of *tag_name: value* tags to
+  associate with the data points
+- **time_field** (*str*, optional) - Field name to extract and use as timestamp
+
 #### `.select_recent(`*`database, measurement, fields='*', tags={}, relative_time='15m'`*`)`
 
 Query the InfluxDB API for *measurement* in *database*, using the *fields*
