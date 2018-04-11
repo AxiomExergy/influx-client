@@ -4,6 +4,7 @@
 """
 # System imports
 import os
+import math
 import time
 
 # 3rd party imports
@@ -42,6 +43,57 @@ def test_make_lines():
         '1521241703097608192\n')
 
 
+def test_make_many_lines():
+    _make_many_lines = influx.InfluxDB._make_many_lines
+
+    measurement = 'test_many'
+    fields = ['alpha', 'beta', 'ts']
+    values = [
+            [1, 2, 1000],
+            [2, 4, 2000],
+            [3, 6, 3000],
+            [4, 8, 4000],
+            ]
+    tags = {'tag_many': 'all'}
+
+    lines = _make_many_lines(measurement, fields, values, tags)
+
+    expected = (
+            'test_many,tag_many=all alpha=1,beta=2,ts=1000\n'
+            'test_many,tag_many=all alpha=2,beta=4,ts=2000\n'
+            'test_many,tag_many=all alpha=3,beta=6,ts=3000\n'
+            'test_many,tag_many=all alpha=4,beta=8,ts=4000\n'
+            )
+
+    eq_(lines, expected)
+
+
+def test_make_many_lines_with_time_field():
+    _make_many_lines = influx.InfluxDB._make_many_lines
+
+    measurement = 'test_many'
+    fields = ['alpha', 'beta', 'ts']
+    values = [
+            [1, 2, 1000],
+            [2, 4, 2000],
+            [3, 6, 3000],
+            [4, 8, 4000],
+            ]
+    tags = {'tag_many': 'all'}
+
+    lines = _make_many_lines(measurement, fields, values, tags,
+                             time_field='ts')
+
+    expected = (
+            'test_many,tag_many=all alpha=1,beta=2 1000\n'
+            'test_many,tag_many=all alpha=2,beta=4 2000\n'
+            'test_many,tag_many=all alpha=3,beta=6 3000\n'
+            'test_many,tag_many=all alpha=4,beta=8 4000\n'
+            )
+
+    eq_(lines, expected)
+
+
 def _get_unique_measurement():
     """ Helper to consistently return a unique measurement name as needed. """
     return 'test_measurement_{}'.format(int(time.monotonic() * 1e3))
@@ -69,6 +121,69 @@ def test_write_without_time():
 
     # If there is no error, there will be no response JSON, and we're good
     eq_(err, None)
+
+
+@attr('services_required')
+def test_write_many():
+    client = influx.client(_get_url())
+
+    db = 'test_write_many'
+    measurement = _get_unique_measurement()
+    fields = ['alpha', 'beta']
+    values = [
+            [1.1, 100],
+            [1.2, 200],
+            [2.1, 300],
+            [3.0, 400],
+            [5.0, 500],
+            ]
+    tags = {'tag_write_many': "unittest"}
+    err = client.write_many(db, measurement, fields, values, tags)
+    eq_(err, None)
+
+
+@attr('services_required')
+def test_write_many_with_ts():
+    client = influx.client(_get_url())
+
+    now = pytool.time.utcnow()
+    now = pytool.time.toutctimestamp(now)
+
+    db = 'test_write_many'
+    measurement = _get_unique_measurement()
+    fields = ['alpha', 'beta', 'ts']
+    values = [
+            [1.1, 100, now - 4],
+            [1.2, 200, now - 3],
+            [2.1, 300, now - 2],
+            [3.0, 400, now - 1],
+            [5.0, 500, now],
+            ]
+    tags = {'tag_write_many_ts': "unittest"}
+    err = client.write_many(db, measurement, fields, values, tags, 'ts')
+    eq_(err, None)
+
+    resp = client.select_recent(db, measurement)
+
+    # Precision multiplier (ms)
+    exp = 1000000
+    now = math.floor(now * exp)
+    expected = {
+            'results': [{
+                'series': [{
+                    'name': measurement,
+                    'columns': ['time', 'alpha', 'beta', 'tag_write_many_ts'],
+                    'values': [
+                        [now - (4 * exp), 1.1, 100, 'unittest'],
+                        [now - (3 * exp), 1.2, 200, 'unittest'],
+                        [now - (2 * exp), 2.1, 300, 'unittest'],
+                        [now - (1 * exp), 3, 400, 'unittest'],
+                        [now, 5, 500, 'unittest']]}],
+                'statement_id': 0}]}
+
+    # resp = resp['results'][0]['series'][0]['values']
+    # expected = expected['results'][0]['series'][0]['values']
+    eq_(resp, expected)
 
 
 @attr('services_required')
