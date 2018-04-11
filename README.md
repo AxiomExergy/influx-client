@@ -60,6 +60,10 @@ client.create_database('mydatabase')
 client.write('mydatabase', 'mymeasurement', fields={'value': 1.0},
              tags={'env': 'example'})
 
+# You can write multiple datapoints at a time
+client.write_many('mydatabase', 'mymeasurement', fields=['value', 'alpha'],
+                  values=[[1.0, 0.5], [1.1, 0.6]], tags={'env': 'example'})
+
 # You can query for data relative to now()
 data = client.select_recent('mydatabase', 'mymeasurement', time_relative='1h')
 
