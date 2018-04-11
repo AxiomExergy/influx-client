@@ -107,6 +107,32 @@ class InfluxDB:
         if resp.status_code != 204:
             return resp.json()
 
+    def write_many(self, database, measurement, fields, values, tags={},
+                   time_field=None):
+        """
+        Return response JSON from writing data points as a dict.
+
+        If there is an error with the request, an exception will be raised from
+        the *requests* library.
+
+        :param str database: Database name to write to
+        :param str measurement: Measurement name to write to
+        :param list fields: List of fields
+        :param list values: List of values (list of lists)
+        :param dict tags: Dictionary of tags to associate with these points
+        :param str time_field: Field to extract and use as the timestamp
+            (optional)
+        :return dict: Response JSON
+
+        """
+        lines = InfluxDB._make_many_lines(measurement, fields, values, tags,
+                                          time_field)
+        print(lines)
+        resp = self._safe_request(IQL_WRITE, database=database, lines=lines)
+        InfluxDB._check_and_raise(resp)
+        if resp.status_code != 204:
+            return resp.json()
+
     def select_recent(self, database, measurement, fields='*', tags=None,
                       relative_time="15m"):
         """
@@ -306,6 +332,37 @@ class InfluxDB:
                     'fields': fields,
                     'time': time,
                     }]
+                })
+        return lines
+
+    @staticmethod
+    def _make_many_lines(measurement, fields, values, tags={},
+                         time_field=None):
+        """
+        Return InfluxDB line protocol lines as a string.
+
+        :param str measurement: Measurement name
+        :param list fields: Fields list
+        :param list values: List of values (list of lists)
+        :param dict tags: Tags to include (optional)
+        :param str time_field: Field to extract and use as the timestamp
+            (optional)
+
+        """
+        points = []
+        for line in values:
+            line = dict(zip(fields, line))
+            point = {
+                    'measurement': measurement,
+                    'fields': line,
+                    }
+            if time_field and line.get(time_field, None):
+                point['time'] = line.pop(time_field)
+            points.append(point)
+
+        lines = line_protocol.make_lines({
+                'tags': tags,
+                'points': points,
                 })
         return lines
 
