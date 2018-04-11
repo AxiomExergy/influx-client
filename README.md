@@ -162,7 +162,7 @@ Write data points to the specified *database* and *measurement*.
 - **time** (*datetime*, optional) - Datetime to use instead of InfluxDB's
   server-side "now"
 
-#### `.write_many(`*`database, measurement, fields, tags={}, time=None`*`)`
+#### `.write_many(`*`database, measurement, fields, values, tags={}, time_field=None`*`)`
 
 Write data points to the specified *database* and *measurement*.
 
