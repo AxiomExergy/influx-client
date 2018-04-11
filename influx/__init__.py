@@ -127,7 +127,6 @@ class InfluxDB:
         """
         lines = InfluxDB._make_many_lines(measurement, fields, values, tags,
                                           time_field)
-        print(lines)
         resp = self._safe_request(IQL_WRITE, database=database, lines=lines)
         InfluxDB._check_and_raise(resp)
         if resp.status_code != 204:
