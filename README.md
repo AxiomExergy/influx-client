@@ -68,7 +68,7 @@ client.write_many('mydatabase', 'mymeasurement', fields=['value', 'alpha'],
 data = client.select_recent('mydatabase', 'mymeasurement', time_relative='1h')
 
 # You can query with arbitrary WHERE clauses and LIMITs
-data = client.select_recent('mydatabase', 'mymeasurement', where='time > 0', limit=1)
+data = client.select_where('mydatabase', 'mymeasurement', where='time > 0', limit=1)
 
 # You can clean up after yourself, for example in testing environments
 client.drop_database('mydatabase')
