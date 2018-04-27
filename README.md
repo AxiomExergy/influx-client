@@ -191,7 +191,7 @@ Returns the raw JSON response from InfluxDB.
 - **tags** (*dict*, optional) - Dictionary of *tag_name: value* tags to match
 - **relative_time** (*str*, default `'15m'`) - Relative time string
 
-#### `.select_where(`*`database, measurement, fields='*', tags={}, where='time > now() - 15m', limit=None`*`)`
+#### `.select_where(`*`database, measurement, fields='*', tags={}, where='time > now() - 15m', desc=False, limit=None`*`)`
 
 Query the InfluxDB API for *measurement* in *database*, using the *fields*
 string, limited to matching *tags* with the *where* clause and *limit* applied.
