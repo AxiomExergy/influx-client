@@ -228,7 +228,7 @@ class InfluxDB:
         return resp.json()
 
     def select_where(self, database, measurement, fields='*', tags=None,
-                     where=None, limit=None):
+                     where=None, desc=False, limit=None):
         """
         Return response JSON from querying InfluxDB for all fields in the given
         database and measurement.
@@ -241,6 +241,7 @@ class InfluxDB:
         :param str fields: Fields to select in query (optional, default `'*'`)
         :param str tags: Tags to restrict the select by (optional)
         :param str where: Where clause to add (default `'time > now() - 15m'`)
+        :param bool desc: Set this to `True` if you want descending values
         :param int limit: Limit to this number of rows
 
         """
@@ -249,6 +250,10 @@ class InfluxDB:
         # Format the tags and combine them with the time slice for WHERE clause
         if tags:
             where += " AND {}".format(InfluxDB._format_tags(tags))
+
+        # Add the order by clause if we want it
+        if desc:
+            where += " ORDER BY time DESC"
 
         # Add the limit into the WHERE clause so it's ordered correctly
         if limit:
