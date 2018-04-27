@@ -41,11 +41,13 @@ class InfluxDB:
     __slots__ = [
             'url',
             'session',
+            'timeout',
             '__weakref__',
             ]
 
-    def __init__(self, url):
+    def __init__(self, url, timeout=2):
         self.url = url
+        self.timeout = timeout
         self.session = requests.Session()
 
     def create_database(self, database):
@@ -357,7 +359,7 @@ class InfluxDB:
         # Make the request using the session socket pool
         # XXX (Jake): May want to make the timeout here configurable...
         return self.session.request(method, url, params=params, data=data,
-                                    timeout=2)
+                                    timeout=self.timeout)
 
     @staticmethod
     def _check_and_raise(response):
