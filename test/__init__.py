@@ -284,8 +284,8 @@ def test_select_where_in_the_past():
                                tags=tags, where=where)
 
     # We should find our hour old data point
-    expected = {'results': [{'statement_id': 0, 'series': [{'name':
-        measurement, 'columns': ['time', 'my_tag', 'value'], 'values':
+    expected = {'results': [{'statement_id': 0, 'series': [{
+        'name': measurement, 'columns': ['time', 'my_tag', 'value'], 'values':
         [[expected_time, 'huzzah', 1]]}]}]}
 
     eq_(resp, expected)
