@@ -243,16 +243,16 @@ def test_select_where():
     test_time = pytool.time.utcnow().replace(microsecond=0)
     expected_time = pytool.time.toutctimestamp(test_time) * 1e6
     measurement = _get_unique_measurement()
+    db = 'test_select_where'
     tags = {'my_tag': 'workplz'}
 
-    resp = client.write('test_select_all', measurement, {'value': 1}, tags,
-                        time=test_time)
+    resp = client.write(db, measurement, {'value': 1}, tags, time=test_time)
 
     # Sleep for 10ms to guarantee write persistence
     time.sleep(0.01)
 
     # Make our query
-    resp = client.select_where('test_select_all', measurement,
+    resp = client.select_where(db, measurement,
                                tags=tags, where='time > now() - 1s')
 
     eq_(resp, {'results': [{'statement_id': 0, 'series': [{'name':
@@ -269,10 +269,11 @@ def test_select_where_in_the_past():
     test_time -= datetime.timedelta(hours=1)
     expected_time = pytool.time.toutctimestamp(test_time) * 1e6
     measurement = _get_unique_measurement()
+    db = 'test_select_where'
     tags = {'my_tag': 'huzzah'}
 
     # Write one data point an hour ago
-    resp = client.write('test_select_all', measurement, {'value': 1}, tags,
+    resp = client.write(db, measurement, {'value': 1}, tags,
                         time=test_time)
 
     # Sleep for 10ms to guarantee write persistence
@@ -280,8 +281,7 @@ def test_select_where_in_the_past():
 
     # Make our query
     where = 'time > now() - 61m AND time < now() - 59m'
-    resp = client.select_where('test_select_all', measurement,
-                               tags=tags, where=where)
+    resp = client.select_where(db, measurement, tags=tags, where=where)
 
     # We should find our hour old data point
     expected = {'results': [{'statement_id': 0, 'series': [{
@@ -292,8 +292,7 @@ def test_select_where_in_the_past():
 
     # Query for 1h10m ago
     where = 'time > now() - 71m AND time < now() - 69m'
-    resp = client.select_where('test_select_all', measurement,
-                               tags=tags, where=where)
+    resp = client.select_where(db, measurement, tags=tags, where=where)
 
     # We shouldn't find anything
     eq_(resp, {'results': [{'statement_id': 0}]})
@@ -306,11 +305,52 @@ def test_select_where_in_the_past():
 
     where = "time > '{}' AND time < '{}'".format(earlier, later)
 
-    resp = client.select_where('test_select_all', measurement,
-                               tags=tags, where=where)
+    resp = client.select_where(db, measurement, tags=tags, where=where)
 
     # We should find our data point again
     eq_(resp, expected)
+
+
+@attr('services_required')
+def test_select_where_limits():
+    client = influx.client(_get_url())
+
+    # Replace microseconds race conditions at the nanosecond level
+    test_time = pytool.time.utcnow().replace(microsecond=0)
+    expected_time = pytool.time.toutctimestamp(test_time) * 1e6
+    measurement = _get_unique_measurement()
+    db = 'test_select_where'
+    tags = {'my_tag': 'workplz'}
+
+    resp = client.write(db, measurement, {'value': 1}, tags,
+                        time=test_time - datetime.timedelta(seconds=2))
+    eq_(resp, None)
+    resp = client.write(db, measurement, {'value': 2}, tags,
+                        time=test_time - datetime.timedelta(seconds=1))
+    eq_(resp, None)
+    resp = client.write(db, measurement, {'value': 3}, tags,
+                        time=test_time)
+    eq_(resp, None)
+
+    # Sleep for 10ms to guarantee write persistence
+    time.sleep(0.01)
+
+    # Make our query
+    # fields = 'my_tag, last(value)'
+    fields = 'last(*)'
+    resp = client.select_where(db, measurement, fields=fields, tags=tags,
+                               where='time > now() - 10s', limit=1)
+    columns, values = client.unpack(resp)
+    eq_(values, [[expected_time, 'workplz', 3]])
+
+    # Make our query
+    resp = client.select_where(db, measurement, tags=tags,
+                               where='time > now() - 10s', limit=1)
+    columns, values = client.unpack(resp)
+
+    # Subtract two seconds from the expected time to match first result
+    expected_time -= 2000000
+    eq_(values, [[expected_time, 'workplz', 1]])
 
 
 def test_format_tags_simple():
