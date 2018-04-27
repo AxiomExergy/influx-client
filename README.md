@@ -67,6 +67,9 @@ client.write_many('mydatabase', 'mymeasurement', fields=['value', 'alpha'],
 # You can query for data relative to now()
 data = client.select_recent('mydatabase', 'mymeasurement', time_relative='1h')
 
+# You can query with arbitrary WHERE clauses and LIMITs
+data = client.select_recent('mydatabase', 'mymeasurement', where='time > 0', limit=1)
+
 # You can clean up after yourself, for example in testing environments
 client.drop_database('mydatabase')
 
@@ -187,6 +190,21 @@ Returns the raw JSON response from InfluxDB.
   query
 - **tags** (*dict*, optional) - Dictionary of *tag_name: value* tags to match
 - **relative_time** (*str*, default `'15m'`) - Relative time string
+
+#### `.select_where(`*`database, measurement, fields='*', tags={}, where='time > now() - 15m', limit=None`*`)`
+
+Query the InfluxDB API for *measurement* in *database*, using the *fields*
+string, limited to matching *tags* with the *where* clause and *limit* applied.
+
+Returns the raw JSON response from InfluxDB.
+
+- **database** (*str*) - Database name
+- **measurement** (*str*) - Measurement name
+- **fields** (*str*, default `'*'`) - String formatted fields for `SELECT`
+  query
+- **tags** (*dict*, optional) - Dictionary of *tag_name: value* tags to match
+- **where** (*str*, default `'time > now() - 15m'`) Where clause to add
+- **limit** (*int*, optional) Limit to this number of data points
 
 ## License
 

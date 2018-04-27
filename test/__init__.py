@@ -6,6 +6,7 @@
 import os
 import math
 import time
+import datetime
 
 # 3rd party imports
 import pytool
@@ -208,7 +209,7 @@ def test_select_all():
 
 
 @attr('services_required')
-def test_select_where():
+def test_select_recent():
     client = influx.client(_get_url())
 
     # Replace microseconds race conditions at the nanosecond level
@@ -220,8 +221,8 @@ def test_select_where():
     resp = client.write('test_select_all', measurement, {'value': 1}, tags,
                         time=test_time)
 
-    # Sleep for 50ms to guarantee write persistence
-    time.sleep(0.05)
+    # Sleep for 10ms to guarantee write persistence
+    time.sleep(0.01)
 
     # Make our query
     # resp = client.select_recent('test_select_all', measurement,
@@ -232,6 +233,84 @@ def test_select_where():
     eq_(resp, {'results': [{'statement_id': 0, 'series': [{'name':
         measurement, 'columns': ['time', 'my_tag', 'value'], 'values':
         [[expected_time, 'hello', 1]]}]}]})
+
+
+@attr('services_required')
+def test_select_where():
+    client = influx.client(_get_url())
+
+    # Replace microseconds race conditions at the nanosecond level
+    test_time = pytool.time.utcnow().replace(microsecond=0)
+    expected_time = pytool.time.toutctimestamp(test_time) * 1e6
+    measurement = _get_unique_measurement()
+    tags = {'my_tag': 'workplz'}
+
+    resp = client.write('test_select_all', measurement, {'value': 1}, tags,
+                        time=test_time)
+
+    # Sleep for 10ms to guarantee write persistence
+    time.sleep(0.01)
+
+    # Make our query
+    resp = client.select_where('test_select_all', measurement,
+                               tags=tags, where='time > now() - 1s')
+
+    eq_(resp, {'results': [{'statement_id': 0, 'series': [{'name':
+        measurement, 'columns': ['time', 'my_tag', 'value'], 'values':
+        [[expected_time, 'workplz', 1]]}]}]})
+
+
+@attr('services_required')
+def test_select_where_in_the_past():
+    client = influx.client(_get_url())
+
+    # Replace microseconds race conditions at the nanosecond level
+    test_time = pytool.time.utcnow().replace(microsecond=0)
+    test_time -= datetime.timedelta(hours=1)
+    expected_time = pytool.time.toutctimestamp(test_time) * 1e6
+    measurement = _get_unique_measurement()
+    tags = {'my_tag': 'huzzah'}
+
+    # Write one data point an hour ago
+    resp = client.write('test_select_all', measurement, {'value': 1}, tags,
+                        time=test_time)
+
+    # Sleep for 10ms to guarantee write persistence
+    time.sleep(0.01)
+
+    # Make our query
+    where = 'time > now() - 61m AND time < now() - 59m'
+    resp = client.select_where('test_select_all', measurement,
+                               tags=tags, where=where)
+
+    # We should find our hour old data point
+    expected = {'results': [{'statement_id': 0, 'series': [{
+        'name': measurement, 'columns': ['time', 'my_tag', 'value'], 'values':
+        [[expected_time, 'huzzah', 1]]}]}]}
+
+    eq_(resp, expected)
+
+    # Query for 1h10m ago
+    where = 'time > now() - 71m AND time < now() - 69m'
+    resp = client.select_where('test_select_all', measurement,
+                               tags=tags, where=where)
+
+    # We shouldn't find anything
+    eq_(resp, {'results': [{'statement_id': 0}]})
+
+    # Query an hour ago again, but with timestamps
+    earlier = test_time - datetime.timedelta(minutes=1)
+    later = test_time + datetime.timedelta(minutes=1)
+    earlier = earlier.replace(tzinfo=None).isoformat('T') + 'Z'
+    later = later.replace(tzinfo=None).isoformat('T') + 'Z'
+
+    where = "time > '{}' AND time < '{}'".format(earlier, later)
+
+    resp = client.select_where('test_select_all', measurement,
+                               tags=tags, where=where)
+
+    # We should find our data point again
+    eq_(resp, expected)
 
 
 def test_format_tags_simple():
