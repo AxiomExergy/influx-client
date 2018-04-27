@@ -252,8 +252,6 @@ def test_select_where():
     time.sleep(0.01)
 
     # Make our query
-    # resp = client.select_recent('test_select_all', measurement,
-    #                               where='"my_tag" = \'hello\'')
     resp = client.select_where('test_select_all', measurement,
                                tags=tags, where='time > now() - 1s')
 
@@ -273,6 +271,7 @@ def test_select_where_in_the_past():
     measurement = _get_unique_measurement()
     tags = {'my_tag': 'huzzah'}
 
+    # Write one data point an hour ago
     resp = client.write('test_select_all', measurement, {'value': 1}, tags,
                         time=test_time)
 
@@ -280,36 +279,38 @@ def test_select_where_in_the_past():
     time.sleep(0.01)
 
     # Make our query
-    # resp = client.select_recent('test_select_all', measurement,
-    #                               where='"my_tag" = \'hello\'')
     where = 'time > now() - 61m AND time < now() - 59m'
     resp = client.select_where('test_select_all', measurement,
                                tags=tags, where=where)
 
-    eq_(resp, {'results': [{'statement_id': 0, 'series': [{'name':
+    # We should find our hour old data point
+    expected = {'results': [{'statement_id': 0, 'series': [{'name':
         measurement, 'columns': ['time', 'my_tag', 'value'], 'values':
-        [[expected_time, 'huzzah', 1]]}]}]})
+        [[expected_time, 'huzzah', 1]]}]}]}
 
+    eq_(resp, expected)
+
+    # Query for 1h10m ago
     where = 'time > now() - 71m AND time < now() - 69m'
     resp = client.select_where('test_select_all', measurement,
                                tags=tags, where=where)
 
+    # We shouldn't find anything
     eq_(resp, {'results': [{'statement_id': 0}]})
 
+    # Query an hour ago again, but with timestamps
     earlier = test_time - datetime.timedelta(minutes=1)
     later = test_time + datetime.timedelta(minutes=1)
     earlier = earlier.replace(tzinfo=None).isoformat('T') + 'Z'
     later = later.replace(tzinfo=None).isoformat('T') + 'Z'
 
     where = "time > '{}' AND time < '{}'".format(earlier, later)
-    print(where)
 
     resp = client.select_where('test_select_all', measurement,
                                tags=tags, where=where)
 
-    eq_(resp, {'results': [{'statement_id': 0, 'series': [{'name':
-        measurement, 'columns': ['time', 'my_tag', 'value'], 'values':
-        [[expected_time, 'huzzah', 1]]}]}]})
+    # We should find our data point again
+    eq_(resp, expected)
 
 
 def test_format_tags_simple():
