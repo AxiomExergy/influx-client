@@ -312,7 +312,7 @@ def test_select_where_in_the_past():
 
 
 @attr('services_required')
-def test_select_where_limits():
+def test_select_where_limits_and_order():
     client = influx.client(_get_url())
 
     # Replace microseconds race conditions at the nanosecond level
@@ -336,20 +336,29 @@ def test_select_where_limits():
     time.sleep(0.01)
 
     # Make our query
-    # fields = 'my_tag, last(value)'
-    fields = 'last(*)'
+    fields = 'my_tag, last(value)'
     resp = client.select_where(db, measurement, fields=fields, tags=tags,
                                where='time > now() - 10s', limit=1)
     columns, values = client.unpack(resp)
     eq_(values, [[expected_time, 'workplz', 3]])
 
-    # Make our query
-    resp = client.select_where(db, measurement, tags=tags,
-                               where='time > now() - 10s', limit=1)
+    # Test reverse ordering
+    resp = client.select_where(db, measurement, tags=tags, desc=True, limit=1)
     columns, values = client.unpack(resp)
+    eq_(values, [[expected_time, 'workplz', 3]])
 
     # Subtract two seconds from the expected time to match first result
     expected_time -= 2000000
+
+    # Test regular ordering
+    resp = client.select_where(db, measurement, tags=tags, desc=False, limit=1)
+    columns, values = client.unpack(resp)
+    eq_(values, [[expected_time, 'workplz', 1]])
+
+    # Generic ordering
+    resp = client.select_where(db, measurement, tags=tags,
+                               where='time > now() - 10s', limit=1)
+    columns, values = client.unpack(resp)
     eq_(values, [[expected_time, 'workplz', 1]])
 
 
