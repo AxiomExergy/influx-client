@@ -204,6 +204,7 @@ Returns the raw JSON response from InfluxDB.
   query
 - **tags** (*dict*, optional) - Dictionary of *tag_name: value* tags to match
 - **where** (*str*, default `'time > now() - 15m'`) Where clause to add
+- **desc** (*bool*, default `False`) Add the `ORDER BY time DESC` clause
 - **limit** (*int*, optional) Limit to this number of data points
 
 ## License

@@ -132,6 +132,62 @@ class InfluxDB:
         if resp.status_code != 204:
             return resp.json()
 
+    def unpack(self, result):
+        """
+        Return the column and values keys from *result*, expecting one series.
+
+        :param dict result: Result dictionary as returned by API
+        :return tuple: 2-tuple of columns and values
+
+        Expects an object like:
+
+            {'results': [{
+                'statement_id': 0,
+                'series': [{
+                    'name': <measurement>,
+                    'columns': [ ... ],
+                    'values': [[ ... ], ...]
+                    }]
+                }]
+            }
+
+        """
+        def _debug(*args):
+            # print(*args)
+            pass
+
+        _debug("Result", result)
+
+        empty = [], []
+        result = result.get('results', None)
+        if not result or not len(result):
+            _debug("No results key or empty", result)
+            return empty
+
+        result = result[0]
+        if not result or not isinstance(result, dict):
+            _debug("No first statement or not dict", result)
+            return empty
+
+        result = result.get('series', None)
+        if not result or not len(result):
+            _debug("No series or series empty", result)
+            return empty
+
+        result = result[0]
+        if not result or not isinstance(result, dict):
+            _debug("Series empty or not dict", result)
+            return empty
+
+        columns = result.get('columns', None)
+        if not columns or not len(columns):
+            _debug("No columns or columns empty", columns)
+            return empty
+
+        values = result.get('values', [])
+
+        return columns, values
+
     def select_recent(self, database, measurement, fields='*', tags=None,
                       relative_time="15m"):
         """
@@ -172,7 +228,7 @@ class InfluxDB:
         return resp.json()
 
     def select_where(self, database, measurement, fields='*', tags=None,
-                     where=None, limit=None):
+                     where=None, desc=False, limit=None):
         """
         Return response JSON from querying InfluxDB for all fields in the given
         database and measurement.
@@ -185,6 +241,7 @@ class InfluxDB:
         :param str fields: Fields to select in query (optional, default `'*'`)
         :param str tags: Tags to restrict the select by (optional)
         :param str where: Where clause to add (default `'time > now() - 15m'`)
+        :param bool desc: Set this to `True` if you want descending values
         :param int limit: Limit to this number of rows
 
         """
@@ -194,17 +251,17 @@ class InfluxDB:
         if tags:
             where += " AND {}".format(InfluxDB._format_tags(tags))
 
-        kwargs = dict(
-            database=database,
-            measurement=measurement,
-            fields=fields,
-            where=where,
-            )
+        # Add the order by clause if we want it
+        if desc:
+            where += " ORDER BY time DESC"
 
+        # Add the limit into the WHERE clause so it's ordered correctly
         if limit:
-            kwargs['limit'] = limit
+            where += " LIMIT {}".format(limit)
 
-        resp = self._safe_request(IQL_SELECT, **kwargs)
+        resp = self._safe_request(IQL_SELECT, database=database,
+                                  measurement=measurement, fields=fields,
+                                  where=where)
         InfluxDB._check_and_raise(resp)
         return resp.json()
 
