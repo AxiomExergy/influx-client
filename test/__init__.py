@@ -343,12 +343,30 @@ def test_select_where_limits_and_order():
     eq_(values, [[expected_time, 'workplz', 3]])
 
     # Test reverse ordering
+    resp = client.select_where(db, measurement, tags=tags, desc=True, limit=3)
+    columns, values = client.unpack(resp)
+    eq_(len(values), 3)
+    eq_(values[0], [expected_time, 'workplz', 3])
+
+    # Test starting timestamp with reverse ordering
+    fields = 'my_tag, first(value)'
     resp = client.select_where(db, measurement, tags=tags, desc=True, limit=1)
     columns, values = client.unpack(resp)
     eq_(values, [[expected_time, 'workplz', 3]])
 
     # Subtract two seconds from the expected time to match first result
     expected_time -= 2000000
+
+    resp = client.select_where(db, measurement, tags=tags, desc=False, limit=3)
+    columns, values = client.unpack(resp)
+    eq_(len(values), 3)
+    eq_(values[0], [expected_time, 'workplz', 1])
+
+    # Test starting timestamp
+    fields = 'my_tag, first(value)'
+    resp = client.select_where(db, measurement, tags=tags, desc=False, limit=1)
+    columns, values = client.unpack(resp)
+    eq_(values, [[expected_time, 'workplz', 1]])
 
     # Test regular ordering
     resp = client.select_where(db, measurement, tags=tags, desc=False, limit=1)
