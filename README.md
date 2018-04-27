@@ -130,7 +130,7 @@ description* style. See the commit history for examples.
 
 This section describes the public API for *influx-client*.
 
-### `InfluxDB(`*`url`*`)`
+### `InfluxDB(`*`url, timeout=2`*`)`
 
 This is the main InfluxDB client. It works as a singleton instance per *url*.
 In threaded or event loop based environments it relies on the *requests*
@@ -138,6 +138,7 @@ library connection pooling (which in turn relies on *urllib3*) for thread
 safety.
 
 - **url** (*str*) - URL to InfluxDB API (such as `'http://127.0.0.1:8086'`)
+- **timeout** (*int*, default `2`) - Timeout in seconds for requests
 
 #### `.create_database(`*`database`*`)`
 
