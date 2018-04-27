@@ -171,6 +171,43 @@ class InfluxDB:
         InfluxDB._check_and_raise(resp)
         return resp.json()
 
+    def select_where(self, database, measurement, fields='*', tags=None,
+                     where=None, limit=None):
+        """
+        Return response JSON from querying InfluxDB for all fields in the given
+        database and measurement.
+
+        If there is an error with the request, an exception will be raised from
+        the *requests* library.
+
+        :param str database: Database name to query
+        :param str measurement: Measurement name to query
+        :param str fields: Fields to select in query (optional, default `'*'`)
+        :param str tags: Tags to restrict the select by (optional)
+        :param str where: Where clause to add (default `'time > now() - 15m'`)
+        :param int limit: Limit to this number of rows
+
+        """
+        where = where or "time > now() - 15m"
+
+        # Format the tags and combine them with the time slice for WHERE clause
+        if tags:
+            where += " AND {}".format(InfluxDB._format_tags(tags))
+
+        kwargs = dict(
+            database=database,
+            measurement=measurement,
+            fields=fields,
+            where=where,
+            )
+
+        if limit:
+            kwargs['limit'] = limit
+
+        resp = self._safe_request(IQL_SELECT, **kwargs)
+        InfluxDB._check_and_raise(resp)
+        return resp.json()
+
     def _safe_request(self, *args, **kwargs):
         """
         Return a response object.
