@@ -15,6 +15,7 @@ from nose.plugins.attrib import attr
 
 # Project imports
 import influx
+import fixtures
 
 
 def _get_url():
@@ -406,3 +407,61 @@ def test_format_tags_empty():
     where = _format_tags({})
 
     eq_(where, '')
+
+
+def test_importing_result_line_protocol():
+    _make_many_lines = influx.InfluxDB._make_many_lines
+    client = influx.client(_get_url())
+    result = fixtures.json.result
+    columns, values = client.unpack(result)
+
+    # Sanity check
+    eq_(columns[0], 'time')
+    eq_(values[0][0], 1487275118000000)
+
+    columns = columns[:3]
+    values = [row[:3] for row in values[:3]]
+
+    measurement = 'lines'
+    fields = columns
+    tags = {'mytag': 'mine'}
+
+    lines = _make_many_lines(measurement, fields, values, tags)
+
+    expected = (
+            'lines,mytag=mine blding.cmpA=34.45272,blding.cmpB=48.43736,'
+            'time=1487275118000000\n'
+            'lines,mytag=mine blding.cmpA=34.223846,blding.cmpB=48.417927,'
+            'time=1487275133000000\n'
+            'lines,mytag=mine blding.cmpA=23.646818,blding.cmpB=48.378204,'
+            'time=1487275148000000\n'
+            )
+
+    eq_(lines, expected)
+
+
+@attr('services_required')
+def test_importing_result_write_and_retrieve():
+    client = influx.client(_get_url())
+    result = fixtures.json.result
+    columns, values = client.unpack(result)
+
+    columns = columns[:3]
+    values = [row[:3] for row in values[:3]]
+
+    print(values)
+
+    db = 'test_write_result'
+    measurement = _get_unique_measurement()
+    fields = columns
+
+    tags = {'imported': 'yes'}
+    err = client.write_many(db, measurement, fields, values, tags, 'time')
+
+    eq_(err, None)
+
+    resp = client.select_recent(db, measurement, relative_time='100000d')
+    fields, vals = client.unpack(resp)
+
+    eq_(fields, columns + ['imported'])
+    eq_(vals, [v + ['yes'] for v in values])
