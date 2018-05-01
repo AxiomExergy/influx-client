@@ -12,30 +12,42 @@ import pytool
 
 
 def _convert_timestamp(timestamp, precision=None):
+    if precision is None or precision == 'n':
+        factor = 1e9
+    elif precision == 'u':
+        factor = 1e6
+    elif precision == 'ms':
+        factor = 1e3
+    elif precision == 's':
+        factor = 1
+    elif precision == 'm':
+        factor = 1. / 60
+    elif precision == 'h':
+        factor = 1. / 3600
+
     if isinstance(timestamp, Integral):
+        # Sanity checking that the precision isn't set wrong... this may bite
+        # people who are using far future timestamps, which InfluxDB supports
+        if precision == 'u':
+            assert timestamp < 1e18
+        elif precision == 'ms':
+            assert timestamp < 1e15
+        elif precision == 's':
+            assert timestamp < 1e12
+
         return timestamp  # assume precision is correct if timestamp is int
 
     if isinstance(timestamp, float):
-        return timestamp * 1e9
+        return timestamp * factor
 
     if isinstance(timestamp, datetime):
         if not timestamp.tzinfo:
             timestamp = pytool.time.as_utc(timestamp)
 
-        ns = ((timestamp - pytool.time.fromutctimestamp(0)).total_seconds()
-              * 1e9)
-        if precision is None or precision == 'n':
-            return ns
-        elif precision == 'u':
-            return ns / 1e3
-        elif precision == 'ms':
-            return ns / 1e6
-        elif precision == 's':
-            return ns / 1e9
-        elif precision == 'm':
-            return ns / 1e9 / 60
-        elif precision == 'h':
-            return ns / 1e9 / 3600
+        stamp = timestamp - pytool.time.fromutctimestamp(0)
+        stamp = stamp.total_seconds()
+        stamp *= factor
+        return stamp
 
     raise ValueError(timestamp)
 

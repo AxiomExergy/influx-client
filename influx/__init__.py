@@ -18,13 +18,13 @@ from . import line_protocol
 
 
 # Mappings for InfluxQL commands to HTTP requests
-IQL_WRITE = 'POST', 'write?db={database}', '', '{lines}'
+IQL_WRITE = 'POST', 'write?db={database}&precision={precision}', '', '{lines}'
 IQL_CREATE_DATABASE = ('POST', 'query', {'q':
                                          "CREATE DATABASE \"{database}\""}, '')
 IQL_DROP_DATABASE = ('POST', 'query', {'q':
                                        "DROP DATABASE \"{database}\""}, '')
-IQL_SELECT = ('GET', 'query', {'db': "{database}", 'epoch': 'u', 'q': "SELECT "
-              "{fields} FROM {measurement} WHERE {where}"}, '')
+IQL_SELECT = ('GET', 'query', {'db': "{database}", 'epoch': '{precision}',
+              'q': "SELECT {fields} FROM {measurement} WHERE {where}"}, '')
 
 
 @pytool.lang.hashed_singleton
@@ -39,15 +39,17 @@ class InfluxDB:
 
     """
     __slots__ = [
-            'url',
+            'precision',
             'session',
             'timeout',
+            'url',
             '__weakref__',
             ]
 
-    def __init__(self, url, timeout=2):
+    def __init__(self, url, timeout=2, precision='u'):
         self.url = url
         self.timeout = timeout
+        self.precision = precision
         self.session = requests.Session()
 
     def create_database(self, database):
@@ -103,7 +105,8 @@ class InfluxDB:
         :return dict: Response JSON
 
         """
-        lines = InfluxDB._make_lines(measurement, fields, tags, time)
+        lines = InfluxDB._make_lines(measurement, fields, tags, time,
+                                     precision=self.precision)
         resp = self._safe_request(IQL_WRITE, database=database, lines=lines)
         InfluxDB._check_and_raise(resp)
         if resp.status_code != 204:
@@ -128,7 +131,7 @@ class InfluxDB:
 
         """
         lines = InfluxDB._make_many_lines(measurement, fields, values, tags,
-                                          time_field)
+                                          time_field, precision=self.precision)
         resp = self._safe_request(IQL_WRITE, database=database, lines=lines)
         InfluxDB._check_and_raise(resp)
         if resp.status_code != 204:
@@ -341,6 +344,9 @@ class InfluxDB:
         :return requests.Response: A response object
 
         """
+        # Add the precision so we can use it in our query shenanigans
+        fields.update(precision=self.precision)
+
         # Get the query template
         method, path, params, data = influxql
 
@@ -407,7 +413,7 @@ class InfluxDB:
         raise HTTPError(http_error_msg, response=response)
 
     @staticmethod
-    def _make_lines(measurement, fields, tags={}, time=None):
+    def _make_lines(measurement, fields, tags={}, time=None, precision=None):
         """
         Return InfluxDB line protocol lines as a string.
 
@@ -427,12 +433,13 @@ class InfluxDB:
                     'fields': fields,
                     'time': time,
                     }]
-                })
+                },
+                precision=precision)
         return lines
 
     @staticmethod
     def _make_many_lines(measurement, fields, values, tags={},
-                         time_field=None):
+                         time_field=None, precision=None):
         """
         Return InfluxDB line protocol lines as a string.
 
@@ -458,7 +465,7 @@ class InfluxDB:
         lines = line_protocol.make_lines({
                 'tags': tags,
                 'points': points,
-                })
+                }, precision=precision)
         return lines
 
     @staticmethod
