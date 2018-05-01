@@ -449,8 +449,6 @@ def test_importing_result_write_and_retrieve():
     columns = columns[:3]
     values = [row[:3] for row in values[:3]]
 
-    print(values)
-
     db = 'test_write_result'
     measurement = _get_unique_measurement()
     fields = columns
