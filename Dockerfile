@@ -23,7 +23,7 @@ RUN pip install --compile .[test]
 # Copy in app and tests
 COPY influx/ ./influx/
 COPY test/ ./test/
-# COPY fixtures/ ./fixtures/
+COPY fixtures/ ./fixtures/
 
 # Check code style and run static analysis along with tests
 RUN flake8 . && \
