@@ -18,6 +18,7 @@ tests_require = [
     'mock',
     'nose',
     'flake8',
+    'coverage<4.1'
 ]
 
 setup(

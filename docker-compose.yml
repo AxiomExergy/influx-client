@@ -3,11 +3,10 @@ services:
   influx_client:
     build:
       context: .
-    command: ${INFLUX_COMMAND:-nosetests -v}
+    command: ${INFLUX_COMMAND:-nosetests -v --with-coverage --cover-package influx .}
     environment:
       INFLUX_URL: http://influx:8086
     links:
       - influx
   influx:
     image: influxdb:${INFLUX_VERSION:-1.5}
-
