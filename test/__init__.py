@@ -10,8 +10,10 @@ import datetime
 
 # 3rd party imports
 import pytool
-from nose.tools import eq_
+from nose.tools import eq_, ok_
 from nose.plugins.attrib import attr
+
+import mock
 
 # Project imports
 import influx
@@ -463,3 +465,47 @@ def test_importing_result_write_and_retrieve():
 
     eq_(fields, columns + ['imported'])
     eq_(vals, [v + ['yes'] for v in values])
+
+
+# @mock.patch('influx.InfluxDB.create_database')
+# @mock.patch('influx.InfluxDB._make_request')
+# def test_safe_request(_make_request, create_database):
+def test_safe_request():
+    # _make_request.return_value.status_code = 200
+    # _make_request.return_value.json = 'error'
+
+    # create_database.return_value = {'results': [{'statement_id': 0}]}
+
+    client = influx.client(_get_url())
+
+    missing_db = mock.MagicMock()
+    created_db = mock.MagicMock()
+    select = mock.MagicMock()
+
+    missing_db.status_code = 404
+    missing_db.json.return_value = {
+            'results': [
+                {
+                    'statement_id': 0,
+                    'error': 'database not found'
+                }
+            ]
+        }
+    created_db.status_code = 200
+    created_db.json.return_value = {'results': [{'statement_id': 0}]}
+
+    select.status_code = 200
+    select.json.return_value = '200 OK'
+
+    with mock.patch.object(client.session, 'request') as request:
+        request.side_effect = [
+            missing_db, created_db, select
+        ]
+
+        resp = client._safe_request(
+            influx.IQL_SELECT, database='database',
+            measurement='measurement', fields='fields',
+            where='where')
+
+        eq_(len(request.call_args_list), 3)
+        ok_(resp.json() is '200 OK')
