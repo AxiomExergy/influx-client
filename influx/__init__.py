@@ -38,6 +38,7 @@ class InfluxDB:
     TODO: Document this
 
     """
+
     __slots__ = [
             'precision',
             'session',
@@ -375,8 +376,6 @@ class InfluxDB:
         :param request.Response response: A response object
 
         """
-        assert isinstance(response, requests.Response), \
-            "Bad response type {}".format(response)
 
         # Only pay attention to codes over 400
         if response.status_code < 400:
