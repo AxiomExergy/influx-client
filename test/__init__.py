@@ -509,3 +509,24 @@ def test_safe_request():
 
         eq_(len(request.call_args_list), 3)
         ok_(resp.json() is '200 OK')
+
+
+@attr('services_required')
+def test_write_float_returns_float():
+    client = influx.client(_get_url())
+
+    db = 'test_write_float'
+    measurement = _get_unique_measurement()
+
+    fields = {'float_value': 0.5}
+    tags = {'tested': 1}
+    err = client.write(db, measurement, fields, tags)
+
+    eq_(err, None)
+
+    resp = client.select_recent(db, measurement)
+    fields, vals = client.unpack(resp)
+
+    eq_(fields, ['time', 'float_value', 'tested'])
+    eq_(vals[0][1:], [0.5, '1'])
+    eq_(type(vals[0][1:][0]), float)
