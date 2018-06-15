@@ -130,7 +130,7 @@ description* style. See the commit history for examples.
 
 This section describes the public API for *influx-client*.
 
-### `InfluxDB(`*`url, timeout=2`*`)`
+### `InfluxDB(`*`url, timeout=2, precision='u'`*`)`
 
 This is the main InfluxDB client. It works as a singleton instance per *url*.
 In threaded or event loop based environments it relies on the *requests*
@@ -139,6 +139,10 @@ safety.
 
 - **url** (*str*) - URL to InfluxDB API (such as `'http://127.0.0.1:8086'`)
 - **timeout** (*int*, default `2`) - Timeout in seconds for requests
+- **precision** (*str*, default `'u'`) - Precision string to use for querying
+    InfluxDB. ([See the documentation]
+    (https://docs.influxdata.com/influxdb/v1.5/tools/api/#query) for what is
+    available.)
 
 #### `.create_database(`*`database`*`)`
 
