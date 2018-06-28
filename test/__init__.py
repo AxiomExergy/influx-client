@@ -82,7 +82,7 @@ def test_make_many_lines():
     eq_(lines, expected)
 
 
-def test_make_many_lines_with_value_tag( ):
+def test_make_many_lines_with_value_tag():
     _make_many_lines = influx.InfluxDB._make_many_lines
 
     measurement = 'test_many'
