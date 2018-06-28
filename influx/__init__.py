@@ -450,6 +450,23 @@ class InfluxDB:
             (optional)
 
         """
+        # start new
+        value_tags = {}
+        for tag, value in list(tags.items()):
+            if value == 'VALUE':
+                value_tags.add(tag)
+                del tags[tag]
+
+        '''
+        tags_index = {}
+
+        for i in range(len(fields)):
+            column = fields[i]
+            if column in value_tags:
+                tags_index[i] = column
+        '''
+        # end new
+
         points = []
         for line in values:
             line = dict(zip(fields, line))
@@ -457,6 +474,14 @@ class InfluxDB:
                     'measurement': measurement,
                     'fields': line,
                     }
+
+            # start new
+            point_tags = {}
+            for tag_key, tag_value in value_tags.items():
+                point_tags[tag_key] = line.pop(tag_key)
+            point['tags'] = point_tags
+            # end new
+
             if time_field and line.get(time_field, None):
                 point['time'] = line.pop(time_field)
             points.append(point)
