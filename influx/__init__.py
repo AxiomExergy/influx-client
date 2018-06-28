@@ -450,22 +450,12 @@ class InfluxDB:
             (optional)
 
         """
-        # start new
+        # Create list of value tags
         value_tags = []
         for tag, value in list(tags.items()):
             if value == 'VALUE':
                 value_tags.append(tag)
                 del tags[tag]
-
-        '''
-        tags_index = {}
-
-        for i in range(len(fields)):
-            column = fields[i]
-            if column in value_tags:
-                tags_index[i] = column
-        '''
-        # end new
 
         points = []
         for line in values:
@@ -475,12 +465,11 @@ class InfluxDB:
                     'fields': line,
                     }
 
-            # start new
+            # Create a dict of value tags for each point and add as tags
             point_tags = {}
             for tag_key in value_tags:
                 point_tags[tag_key] = line.pop(tag_key)
             point['tags'] = point_tags
-            # end new
 
             if time_field and line.get(time_field, None):
                 point['time'] = line.pop(time_field)
