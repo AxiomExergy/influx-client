@@ -451,10 +451,10 @@ class InfluxDB:
 
         """
         # start new
-        value_tags = {}
+        value_tags = []
         for tag, value in list(tags.items()):
             if value == 'VALUE':
-                value_tags.add(tag)
+                value_tags.append(tag)
                 del tags[tag]
 
         '''
@@ -477,7 +477,7 @@ class InfluxDB:
 
             # start new
             point_tags = {}
-            for tag_key, tag_value in value_tags.items():
+            for tag_key in value_tags:
                 point_tags[tag_key] = line.pop(tag_key)
             point['tags'] = point_tags
             # end new
