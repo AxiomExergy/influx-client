@@ -47,6 +47,16 @@ def test_make_lines():
         '1521241703097608192\n')
 
 
+def test_make_lines_with_value_tag():
+    _make_lines = influx.InfluxDB._make_lines
+    lines = _make_lines('test_measurement', {'tag2': 1.0, 'field': 2},
+                        {'tag1': 'test_tag', 'tag2': 'VALUE'},
+                        1521241703.097608192)
+
+    eq_(lines, 'test_measurement,tag1=test_tag,tag2=1.0 field=2 '
+        '1521241703097608192\n')
+
+
 def test_make_many_lines():
     _make_many_lines = influx.InfluxDB._make_many_lines
 
@@ -67,6 +77,31 @@ def test_make_many_lines():
             'test_many,tag_many=all alpha=2,beta=4,ts=2000\n'
             'test_many,tag_many=all alpha=3,beta=6,ts=3000\n'
             'test_many,tag_many=all alpha=4,beta=8,ts=4000\n'
+            )
+
+    eq_(lines, expected)
+
+
+def test_make_many_lines_with_value_tag():
+    _make_many_lines = influx.InfluxDB._make_many_lines
+
+    measurement = 'test_many'
+    fields = ['alpha', 'beta', 'ts']
+    values = [
+            [1, 2, 1000],
+            [2, 4, 2000],
+            [3, 6, 3000],
+            [4, 8, 4000],
+            ]
+    tags = {'tag_many': 'all', 'alpha': 'VALUE'}
+
+    lines = _make_many_lines(measurement, fields, values, tags)
+
+    expected = (
+            'test_many,alpha=1,tag_many=all beta=2,ts=1000\n'
+            'test_many,alpha=2,tag_many=all beta=4,ts=2000\n'
+            'test_many,alpha=3,tag_many=all beta=6,ts=3000\n'
+            'test_many,alpha=4,tag_many=all beta=8,ts=4000\n'
             )
 
     eq_(lines, expected)

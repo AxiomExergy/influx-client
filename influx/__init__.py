@@ -425,13 +425,29 @@ class InfluxDB:
         if time is None:
             time = pytool.time.utcnow()
 
-        lines = line_protocol.make_lines({
-                'tags': tags,
-                'points': [{
+        # Create list of value tags
+        value_tags = []
+        for tag, value in list(tags.items()):
+            if value == 'VALUE':
+                value_tags.append(tag)
+                del tags[tag]
+
+        # Create a point dict so value tags can be popped and replaced as tags
+        point = {
                     'measurement': measurement,
                     'fields': fields,
                     'time': time,
-                    }]
+                }
+
+        # Create a dict of value tags for each point and add as tags
+        point_tags = {}
+        for tag_key in value_tags:
+            point_tags[tag_key] = fields.pop(tag_key)
+        point['tags'] = point_tags
+
+        lines = line_protocol.make_lines({
+                'tags': tags,
+                'points': [point]
                 },
                 precision=precision)
         return lines
@@ -450,6 +466,13 @@ class InfluxDB:
             (optional)
 
         """
+        # Create list of value tags
+        value_tags = []
+        for tag, value in list(tags.items()):
+            if value == 'VALUE':
+                value_tags.append(tag)
+                del tags[tag]
+
         points = []
         for line in values:
             line = dict(zip(fields, line))
@@ -457,6 +480,13 @@ class InfluxDB:
                     'measurement': measurement,
                     'fields': line,
                     }
+
+            # Create a dict of value tags for each point and add as tags
+            point_tags = {}
+            for tag_key in value_tags:
+                point_tags[tag_key] = line.pop(tag_key)
+            point['tags'] = point_tags
+
             if time_field and line.get(time_field, None):
                 point['time'] = line.pop(time_field)
             points.append(point)
