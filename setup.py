@@ -23,7 +23,7 @@ tests_require = [
 
 setup(
     name='influx-client',
-    version='1.4.1',
+    version='1.5.0',
     description="InfluxDB client",
     long_description=readme(),
     long_description_content_type="text/markdown",
