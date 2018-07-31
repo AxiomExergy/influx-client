@@ -25,6 +25,10 @@ IQL_DROP_DATABASE = ('POST', 'query', {'q':
                                        "DROP DATABASE \"{database}\""}, '')
 IQL_SELECT = ('GET', 'query', {'db': "{database}", 'epoch': '{precision}',
               'q': "SELECT {fields} FROM {measurement} WHERE {where}"}, '')
+IQL_SHOW_TAGS = ('GET', 'query', {'db': "{database}",
+                 'q': "SHOW TAG KEYS FROM {measurement}"}, '')
+IQL_SHOW_FIELDS = ('GET', 'query', {'db': "{database}",
+                   'q': "SHOW FIELD KEYS FROM {measurement}"}, '')
 
 
 @pytool.lang.hashed_singleton
@@ -270,6 +274,44 @@ class InfluxDB:
                                   where=where)
         InfluxDB._check_and_raise(resp)
         return resp.json()
+
+    def show_tags(self, database, measurement):
+        """
+        Return a list of tags from querying InfluxDB for tags names for a
+        measurement.
+
+        :param str database: Database name to query
+        :param str measurement: Measurement name to query
+
+        """
+        resp = self._safe_request(IQL_SHOW_TAGS, database=database,
+                                  measurement=measurement)
+        InfluxDB._check_and_raise(resp)
+
+        tags = resp.json()
+        _, tags = self.unpack(tags)
+        if tags:
+            return [t[0] for t in tags]
+        return []
+
+    def show_fields(self, database, measurement):
+        """
+        Return a list of fields from querying InfluxDB for fields names for a
+        measurement.
+
+        :param str database: Database name to query
+        :param str measurement: Measurement name to query
+
+        """
+        resp = self._safe_request(IQL_SHOW_FIELDS, database=database,
+                                  measurement=measurement)
+        InfluxDB._check_and_raise(resp)
+
+        fields = resp.json()
+        _, fields = self.unpack(fields)
+        if fields:
+            return [f[0] for f in fields]
+        return []
 
     def _safe_request(self, *args, **kwargs):
         """
