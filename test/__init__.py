@@ -565,3 +565,31 @@ def test_write_float_returns_float():
     eq_(fields, ['time', 'float_value', 'tested'])
     eq_(vals[0][1:], [0.5, '1'])
     eq_(type(vals[0][1:][0]), float)
+
+
+@attr('services_required')
+def test_show_tags():
+    client = influx.client(_get_url())
+
+    measurement = _get_unique_measurement()
+    err = client.write('test', measurement, {'field1': 1.0, 'field2':
+                       2}, {'tag1': 'test_tag', 'tag2': 'foo'}, 1521241703.092)
+
+    eq_(err, None)
+
+    tags = client.show_tags('test', measurement)
+    eq_(tags, ['tag1', 'tag2'])
+
+
+@attr('services_required')
+def test_show_fields():
+    client = influx.client(_get_url())
+
+    measurement = _get_unique_measurement()
+    err = client.write('test', measurement, {'field1': 1.0, 'field2':
+                       2}, {'tag1': 'test_tag', 'tag2': 'foo'}, 1521241703.092)
+
+    eq_(err, None)
+
+    fields = client.show_fields('test', measurement)
+    eq_(fields, ['field1', 'field2'])
