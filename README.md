@@ -212,6 +212,22 @@ Returns the raw JSON response from InfluxDB.
 - **desc** (*bool*, default `False`) Add the `ORDER BY time DESC` clause
 - **limit** (*int*, optional) Limit to this number of data points
 
+### `.show_tags(`*`database, measurement`*`)`
+
+Query the InfluxDB API and return a list of tag names in *database* and
+*measurement*.
+
+- **database** (*str*) - Database name
+- **measurement** (*str*) - Measurement name
+
+### `.show_fields(`*`database, measurement`*`)`
+
+Query the InfluxDB API and return a list of field names in *database* and
+*measurement*.
+
+- **database** (*str*) - Database name
+- **measurement** (*str*) - Measurement name
+
 ## License
 
 This repository and its codebase are made public under the [Apache License
