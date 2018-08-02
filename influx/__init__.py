@@ -286,7 +286,8 @@ class InfluxDB:
 
     def select_into(self, *args, fields='*', where=None, group_by='*'):
         """
-        Returns the results of a SELECT ... INTO ... FROM ... query.
+        Returns count of data points moved by a SELECT ... INTO ... FROM ...
+        query.
 
         The query will follow the format:
 

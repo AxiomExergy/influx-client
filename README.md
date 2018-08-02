@@ -212,6 +212,40 @@ Returns the raw JSON response from InfluxDB.
 - **desc** (*bool*, default `False`) Add the `ORDER BY time DESC` clause
 - **limit** (*int*, optional) Limit to this number of data points
 
+### `.select_into(`*`[database,] target, source, fields='*', where=None, group_by='*'`*`)`
+
+Returns count of data points moved by a SELECT ... INTO ... FROM ... query.
+
+The query will follow the format:
+
+    SELECT *fields* INTO *target* FROM *source* WHERE *where* GROUP BY *group_by*
+
+The WHERE and GROUP BY clauses are optional.
+
+Note that if you do not include GROUP BY * or explicitly call out tags,
+tags will be recorded as fields.
+
+- **database** (*str*) Database name (optional)
+- **target** (*str*) Target measurement
+- **source** (*str*) Source measurement
+- **fields** (*str*) Fields portion of the SELECT clause (optional,
+    default: '*')
+- **where** (*str*) WHERE portion of the SELECT clause (optional)
+- **group_by** (*str*) GROUP BY portion of the SELECT clause (optional,
+    default: '*')
+
+This method may be called with variable arguments, if you wish to specify the
+full qualified measurement name with database.
+
+Example:
+
+```python
+InfluxDB().select_into('database', 'target', 'source')
+# Is the same as
+InfluxDB().select_into('database.default.target', 'database.default.source')
+# Where often the default is 'autogen'
+```
+
 ### `.show_tags(`*`database, measurement`*`)`
 
 Query the InfluxDB API and return a list of tag names in *database* and
