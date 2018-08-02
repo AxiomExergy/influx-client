@@ -10,8 +10,8 @@ import datetime
 
 # 3rd party imports
 import pytool
-from nose.tools import eq_, ok_
 from nose.plugins.attrib import attr
+from nose.tools import eq_, ok_, raises
 
 import mock
 
@@ -593,3 +593,155 @@ def test_show_fields():
 
     fields = client.show_fields('test', measurement)
     eq_(fields, ['field1', 'field2'])
+
+
+@raises(TypeError)
+def test_select_into_no_args():
+    client = influx.client(_get_url())
+    client.select_into()
+
+
+@raises(TypeError)
+def test_select_into_one_arg():
+    client = influx.client(_get_url())
+    client.select_into('test')
+
+
+@raises(TypeError)
+def test_select_into_four_args():
+    client = influx.client(_get_url())
+    client.select_into('test', 'test', 'test', 'test')
+
+
+@attr('services_required')
+def test_select_into():
+    client = influx.client(_get_url())
+
+    measurement = _get_unique_measurement()
+    err = client.write('test', measurement, {'field1': 1.0, 'field2':
+                       2}, {'tag1': 'test_tag', 'tag2': 'foo'}, 1521241703.092)
+
+    eq_(err, None)
+
+    resp = client.select_where('test', measurement, "count(*)",
+                               where="time > 0")
+    columns, count = client.unpack(resp)
+
+    eq_(columns, ['time', 'count_field1', 'count_field2'])
+    eq_(count[0][1], 1)
+    eq_(count[0][2], 1)
+
+    measurement2 = _get_unique_measurement()
+    count = client.select_into('test', measurement2, measurement)
+
+    eq_(count, 1)
+
+    resp = client.select_where('test', measurement2, "count(*)",
+                               where="time > 0")
+    columns, count = client.unpack(resp)
+
+    eq_(columns, ['time', 'count_field1', 'count_field2'])
+    eq_(count[0][1], 1)
+    eq_(count[0][2], 1)
+
+
+@attr('services_required')
+def test_select_into_cross_database():
+    client = influx.client(_get_url())
+
+    client.create_database('test2')
+
+    measurement = _get_unique_measurement()
+    err = client.write('test', measurement, {'field1': 1.0, 'field2':
+                       2}, {'tag1': 'test_tag', 'tag2': 'foo'}, 1521241703.092)
+
+    eq_(err, None)
+
+    resp = client.select_where('test', measurement, "count(*)",
+                               where="time > 0")
+    columns, count = client.unpack(resp)
+
+    eq_(columns, ['time', 'count_field1', 'count_field2'])
+    eq_(count[0][1], 1)
+    eq_(count[0][2], 1)
+
+    measurement2 = 'test2.autogen.' + _get_unique_measurement()
+    count = client.select_into('test', measurement2, measurement)
+
+    eq_(count, 1)
+
+    resp = client.select_where('test', measurement2, "count(*)",
+                               where="time > 0")
+    columns, count = client.unpack(resp)
+
+    eq_(columns, ['time', 'count_field1', 'count_field2'])
+    eq_(count[0][1], 1)
+    eq_(count[0][2], 1)
+
+
+@attr('services_required')
+def test_select_into_cross_database_no_default():
+    client = influx.client(_get_url())
+
+    client.create_database('test2')
+
+    measurement = _get_unique_measurement()
+    err = client.write('test', measurement, {'field1': 1.0, 'field2':
+                       2}, {'tag1': 'test_tag', 'tag2': 'foo'}, 1521241703.092)
+
+    eq_(err, None)
+
+    resp = client.select_where('test', measurement, "count(*)",
+                               where="time > 0")
+    columns, count = client.unpack(resp)
+
+    eq_(columns, ['time', 'count_field1', 'count_field2'])
+    eq_(count[0][1], 1)
+    eq_(count[0][2], 1)
+
+    measurement = 'test.autogen.' + measurement
+    measurement2 = 'test2.autogen.' + _get_unique_measurement()
+    count = client.select_into(measurement2, measurement)
+
+    eq_(count, 1)
+
+    resp = client.select_where('test', measurement2, "count(*)",
+                               where="time > 0")
+    columns, count = client.unpack(resp)
+
+    eq_(columns, ['time', 'count_field1', 'count_field2'])
+    eq_(count[0][1], 1)
+    eq_(count[0][2], 1)
+
+
+@attr('services_required')
+def test_select_into_same_database_no_default():
+    client = influx.client(_get_url())
+
+    measurement = _get_unique_measurement()
+    err = client.write('test', measurement, {'field1': 1.0, 'field2':
+                       2}, {'tag1': 'test_tag', 'tag2': 'foo'}, 1521241703.092)
+
+    eq_(err, None)
+
+    resp = client.select_where('test', measurement, "count(*)",
+                               where="time > 0")
+    columns, count = client.unpack(resp)
+
+    eq_(columns, ['time', 'count_field1', 'count_field2'])
+    eq_(count[0][1], 1)
+    eq_(count[0][2], 1)
+
+    measurement = 'test.autogen.' + measurement
+    measurement2 = 'test.autogen.' + _get_unique_measurement()
+    count = client.select_into(measurement2, measurement)
+
+    eq_(count, 1)
+
+    resp = client.select_where('test', measurement2, "count(*)",
+                               where="time > 0")
+    columns, count = client.unpack(resp)
+
+    eq_(columns, ['time', 'count_field1', 'count_field2'])
+    eq_(count[0][1], 1)
+    eq_(count[0][2], 1)
