@@ -5,6 +5,7 @@ This module contains an InfluxDB client.
 
 """
 # System imports
+import logging
 from urllib import parse
 
 # 3rd party imports
@@ -29,6 +30,14 @@ IQL_SHOW_TAGS = ('GET', 'query', {'db': "{database}",
                  'q': "SHOW TAG KEYS FROM {measurement}"}, '')
 IQL_SHOW_FIELDS = ('GET', 'query', {'db': "{database}",
                    'q': "SHOW FIELD KEYS FROM {measurement}"}, '')
+IQL_SELECT_INTO = ('POST', 'query', {'db': "{database}",
+                   'q': "SELECT {fields} INTO {target} FROM {source} {where} "
+                                     "{group_by}"}, '')
+
+
+def debug(*args, **kwargs):
+    """ Debug log helper. """
+    logging.getLogger('influx-client').debug(*args, **kwargs)
 
 
 @pytool.lang.hashed_singleton
@@ -275,6 +284,65 @@ class InfluxDB:
         InfluxDB._check_and_raise(resp)
         return resp.json()
 
+    def select_into(self, *args, fields='*', where=None, group_by='*'):
+        """
+        Returns the results of a SELECT ... INTO ... FROM ... query.
+
+        The query will follow the format:
+
+            SELECT fields INTO target FROM source WHERE where GROUP BY group_by
+
+        The WHERE and GROUP BY clauses are optional.
+
+        Note that if you do not include GROUP BY * or explicitly call out tags,
+        tags will be recorded as fields.
+
+        :param str database: Database name (optional)
+        :param str target: Target measurement
+        :param str source: Source measurement
+        :param str fields: Fields portion of the SELECT clause (optional,
+            default: '*')
+        :param str where: WHERE portion of the SELECT clause (optional)
+        :param str group_by: GROUP BY portion of the SELECT clause (optional,
+            default: '*')
+
+        """
+        # Handle variable args
+        if len(args) < 1:
+            raise TypeError("select_into() missing 2 required positional "
+                            "arguments: 'target' and 'source'")
+        if len(args) < 2:
+            raise TypeError("select_into() missing 1 required positional "
+                            "argument: 'source'")
+
+        if len(args) == 2:
+            database = ''
+            target, source = args
+        elif len(args) == 3:
+            database, target, source = args
+        else:
+            raise TypeError("select_into() takes 2 or 3 positional arguments"
+                            "but {} were given".format(len(args)))
+
+        where = where or ''
+        if where:
+            where = 'WHERE ' + where
+
+        group_by = group_by or ''
+        if group_by:
+            group_by = 'GROUP BY ' + group_by
+
+        resp = self._make_request(IQL_SELECT_INTO, database=database,
+                                  fields=fields, source=source, target=target,
+                                  where=where, group_by=group_by)
+
+        InfluxDB._check_and_raise(resp)
+        resp = resp.json()
+        _, counts = self.unpack(resp)
+        if counts:
+            return counts[0][1]
+        return 0
+
     def show_tags(self, database, measurement):
         """
         Return a list of tags from querying InfluxDB for tags names for a
@@ -284,7 +352,7 @@ class InfluxDB:
         :param str measurement: Measurement name to query
 
         """
-        resp = self._safe_request(IQL_SHOW_TAGS, database=database,
+        resp = self._make_request(IQL_SHOW_TAGS, database=database,
                                   measurement=measurement)
         InfluxDB._check_and_raise(resp)
 
@@ -303,7 +371,7 @@ class InfluxDB:
         :param str measurement: Measurement name to query
 
         """
-        resp = self._safe_request(IQL_SHOW_FIELDS, database=database,
+        resp = self._make_request(IQL_SHOW_FIELDS, database=database,
                                   measurement=measurement)
         InfluxDB._check_and_raise(resp)
 
@@ -404,6 +472,9 @@ class InfluxDB:
 
         # Create the new URL
         url = parse.urljoin(self.url, path)
+
+        debug(url)
+        debug(params)
 
         # Make the request using the session socket pool
         # XXX (Jake): May want to make the timeout here configurable...
