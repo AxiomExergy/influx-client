@@ -745,3 +745,50 @@ def test_select_into_same_database_no_default():
     eq_(columns, ['time', 'count_field1', 'count_field2'])
     eq_(count[0][1], 1)
     eq_(count[0][2], 1)
+
+
+@attr('services_required')
+def test_select_into_group_by():
+    client = influx.client(_get_url())
+
+    measurement = _get_unique_measurement()
+    err = client.write('test', measurement, {'field1': 1.0, 'field2':
+                       2}, {'tag1': 'test_tag', 'tag2': 'foo'}, 1521241703.092)
+    eq_(err, None)
+    err = client.write('test', measurement, {'field1': 2.0, 'field2':
+                       4}, {'tag1': 'test_tag', 'tag2': 'foo'}, 1521241705.092)
+    eq_(err, None)
+    err = client.write('test', measurement, {'field1': 3.0, 'field2':
+                       6}, {'tag1': 'test_tag', 'tag2': 'foo'}, 1521241707.092)
+    eq_(err, None)
+
+    resp = client.select_where('test', measurement, "count(*)",
+                               where="time > 0")
+    columns, count = client.unpack(resp)
+
+    eq_(columns, ['time', 'count_field1', 'count_field2'])
+    eq_(count[0][1], 3)
+    eq_(count[0][2], 3)
+
+    measurement = 'test.autogen.' + measurement
+    measurement2 = 'test.autogen.' + _get_unique_measurement()
+    count = client.select_into(measurement2, measurement, fields='mean(*)',
+                               group_by="time(15m)")
+
+    eq_(count, 1)
+
+    resp = client.select_where('test', measurement2, "count(*)",
+                               where="time > 0")
+    columns, count = client.unpack(resp)
+
+    eq_(columns, ['time', 'count_mean_field1', 'count_mean_field2'])
+    eq_(count[0][1], 1)
+    eq_(count[0][2], 1)
+
+    resp = client.select_where('test', measurement2, "*",
+                               where="time > 0")
+    columns, values = client.unpack(resp)
+
+    eq_(columns, ['time', 'mean_field1', 'mean_field2'])
+    eq_(values[0][1], 2.0)
+    eq_(values[0][2], 4)
