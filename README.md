@@ -212,7 +212,7 @@ Returns the raw JSON response from InfluxDB.
 - **desc** (*bool*, default `False`) Add the `ORDER BY time DESC` clause
 - **limit** (*int*, optional) Limit to this number of data points
 
-### `.select_into(`*`[database,] target, source, fields='*', where=None, group_by='*'`*`)`
+#### `.select_into(`*`[database,] target, source, fields='*', where=None, group_by='*'`*`)`
 
 Returns count of data points moved by a SELECT ... INTO ... FROM ... query.
 
@@ -246,7 +246,7 @@ InfluxDB().select_into('database.default.target', 'database.default.source')
 # Where often the default is 'autogen'
 ```
 
-### `.show_tags(`*`database, measurement`*`)`
+#### `.show_tags(`*`database, measurement`*`)`
 
 Query the InfluxDB API and return a list of tag names in *database* and
 *measurement*.
@@ -254,7 +254,7 @@ Query the InfluxDB API and return a list of tag names in *database* and
 - **database** (*str*) - Database name
 - **measurement** (*str*) - Measurement name
 
-### `.show_fields(`*`database, measurement`*`)`
+#### `.show_fields(`*`database, measurement`*`)`
 
 Query the InfluxDB API and return a list of field names in *database* and
 *measurement*.
