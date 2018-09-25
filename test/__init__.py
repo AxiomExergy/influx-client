@@ -830,7 +830,6 @@ def test_select_into_existing():
             [1521241705.092, 20, 1.2, 'test'],
             [1521241707.092, 30, 1.3, 'test'],
             [1521241708.092, 1, 1.35, 'new'],
-            [1521241709.092, 40, 1.4, 'test'],
             [1521241711.092, 50, 1.5, 'test'],
             ]
     # Write new values to DB
@@ -850,7 +849,7 @@ def test_select_into_existing():
 
     # Merge new data into orig
     count = client.select_into('test', measurement, new_measurement)
-    eq_(count, 5)
+    eq_(count, len(new_values))
 
     # Query back data for checking
     resp = client.select_where('test', measurement,
@@ -877,7 +876,7 @@ def test_select_into_existing():
                 [1521241707.092, 30, 1.3, 'test'],
                 [1521241708.092, 1, 1.35, 'new'],
                 [1521241709.092, 4, 1.4, 'fixed'],
-                [1521241709.092, 40, 1.4, 'test'],
+                [1521241709.092, 4, 1.4, 'test'],
                 [1521241711.092, 5, 1.5, 'fixed'],
                 [1521241711.092, 50, 1.5, 'test'],
                 ]
