@@ -792,3 +792,94 @@ def test_select_into_group_by():
     eq_(columns, ['time', 'mean_field1', 'mean_field2'])
     eq_(values[0][1], 2.0)
     eq_(values[0][2], 4)
+
+
+@attr('services_required')
+def test_select_into_existing():
+    client = influx.client(_get_url())
+
+    # Field and tag schema shared between orig/new
+    fields = ['time', 'alpha', 'beta', 'class']
+    tags = {'class': 'VALUE'}
+
+    # Orig values
+    values = [
+            [1521241703.092, 1, 1.1, 'test'],
+            [1521241705.092, 2, 1.2, 'test'],
+            [1521241707.092, 3, 1.3, 'test'],
+            [1521241709.092, 4, 1.4, 'test'],
+            [1521241711.092, 5, 1.5, 'test'],
+            [1521241703.092, 1, 1.1, 'fixed'],
+            [1521241705.092, 2, 1.2, 'fixed'],
+            [1521241707.092, 3, 1.3, 'fixed'],
+            [1521241709.092, 4, 1.4, 'fixed'],
+            [1521241711.092, 5, 1.5, 'fixed'],
+            ]
+    # Write orig values to DB
+    measurement = _get_unique_measurement()
+    client.write_many('test', measurement, fields, values, tags,
+                      time_field='time')
+
+    # Query back data for checking
+    resp = client.select_where('test', measurement,
+                               where="time > 0")
+    _, orig_values = client.unpack(resp)
+
+    # New values
+    new_values = [
+            [1521241705.092, 20, 1.2, 'test'],
+            [1521241707.092, 30, 1.3, 'test'],
+            [1521241708.092, 1, 1.35, 'new'],
+            [1521241709.092, 40, 1.4, 'test'],
+            [1521241711.092, 50, 1.5, 'test'],
+            ]
+    # Write new values to DB
+    new_measurement = _get_unique_measurement()
+    client.write_many('test', new_measurement, fields, new_values, tags,
+                      time_field='time')
+
+    # Check field schema matches
+    found_fields = client.show_fields('test', measurement)
+    new_fields = client.show_fields('test', new_measurement)
+    eq_(found_fields, new_fields)
+
+    # Check tag schema matches
+    found_tags = client.show_tags('test', measurement)
+    new_tags = client.show_tags('test', new_measurement)
+    eq_(found_tags, new_tags)
+
+    # Merge new data into orig
+    count = client.select_into('test', measurement, new_measurement)
+    eq_(count, 5)
+
+    # Query back data for checking
+    resp = client.select_where('test', measurement,
+                               where="time > 0")
+    columns, values = client.unpack(resp)
+
+    # Make sure we have the same columns as the original schema
+    eq_(columns, fields)
+
+    # Modify timesetamps to be floats
+    values = sorted(values)
+    for i in range(len(values)):
+        # They come out with default precision 'u' so divide by 1M
+        values[i][0] = values[i][0] / 10**6
+
+    # We expect the 'test' values to be overwritten with the new values (except
+    # the first one). We also expect the 'new' value to be included. Lastly we
+    # expect the 'fixed' values to be unchanged.
+    expected = [[1521241703.092, 1, 1.1, 'fixed'],
+                [1521241703.092, 1, 1.1, 'test'],
+                [1521241705.092, 2, 1.2, 'fixed'],
+                [1521241705.092, 20, 1.2, 'test'],
+                [1521241707.092, 3, 1.3, 'fixed'],
+                [1521241707.092, 30, 1.3, 'test'],
+                [1521241708.092, 1, 1.35, 'new'],
+                [1521241709.092, 4, 1.4, 'fixed'],
+                [1521241709.092, 40, 1.4, 'test'],
+                [1521241711.092, 5, 1.5, 'fixed'],
+                [1521241711.092, 50, 1.5, 'test'],
+                ]
+
+    eq_(values, expected)
