@@ -580,6 +580,8 @@ class InfluxDB:
             (optional)
 
         """
+        # Create copies of our tags to prevent mutation
+        tags = dict(tags)
         # Create list of value tags
         value_tags = []
         for tag, value in list(tags.items()):
@@ -662,11 +664,12 @@ class InfluxDB:
         return where
 
 
-def client(url):
+def client(url, **kwargs):
     """
     Return an InfluxDB client.
 
     :param str url: InfluxDB API url
+    :param \*\*kwargs: Optional arguments to pass to client constructor
 
     """
-    return InfluxDB(url)
+    return InfluxDB(url, **kwargs)
