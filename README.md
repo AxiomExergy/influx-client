@@ -130,6 +130,15 @@ description* style. See the commit history for examples.
 
 This section describes the public API for *influx-client*.
 
+### `influx.client(`*`url, /*/*kwargs`*`)`
+
+Helper method to allow you to instantiate an InfluxDB client directly from the
+top level package.
+
+- **url** (*str*) - URL to InfluxDB API (*required*)
+- **/*/*kwargs** (*kwargs*) - Other keyword arguments to pass to the InfluxDB
+  constructor
+
 ### `InfluxDB(`*`url, timeout=2, precision='u'`*`)`
 
 This is the main InfluxDB client. It works as a singleton instance per *url*.
