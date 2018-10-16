@@ -60,7 +60,7 @@ class InfluxDB:
             '__weakref__',
             ]
 
-    def __init__(self, url, timeout=2, precision='u'):
+    def __init__(self, url, timeout=60, precision='u'):
         self.url = url
         self.timeout = timeout
         self.precision = precision
