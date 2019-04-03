@@ -26,6 +26,7 @@ COPY test/ ./test/
 COPY fixtures/ ./fixtures/
 
 # Check code style and run static analysis along with tests
-RUN flake8 . && \
+# Ignore W605 errors (\* as invalid escape sequence) for sphinx doc builds.
+RUN flake8 --extend-ignore=W605 . && \
     nosetests -v -a !services_required test/
 
