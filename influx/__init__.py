@@ -454,7 +454,7 @@ class InfluxDB:
         # Create the database
         try:
             db_resp = self.create_database(database)
-        except RequestException as err:
+        except RequestException:
             # XXX: We probably should include this exception to be raised or
             # report it
             return resp
