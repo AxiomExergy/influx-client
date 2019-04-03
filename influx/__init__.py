@@ -24,6 +24,8 @@ IQL_CREATE_DATABASE = ('POST', 'query', {'q':
                                          "CREATE DATABASE \"{database}\""}, '')
 IQL_DROP_DATABASE = ('POST', 'query', {'q':
                                        "DROP DATABASE \"{database}\""}, '')
+IQL_DROP_MEASUREMENT = ('POST', 'query', {'db': "{database}",
+                        'q': "DROP MEASUREMENT \"{measurement}\""}, '')
 IQL_SELECT = ('GET', 'query', {'db': "{database}", 'epoch': '{precision}',
               'q': "SELECT {fields} FROM {measurement} WHERE {where}"}, '')
 IQL_SHOW_TAGS = ('GET', 'query', {'db': "{database}",
@@ -100,6 +102,26 @@ class InfluxDB:
 
         """
         resp = self._make_request(IQL_DROP_DATABASE, database=database)
+        InfluxDB._check_and_raise(resp)
+        return resp.json()
+
+    def drop_measurement(self, measurement, database):
+        """
+        Returns the reponse JSON from making the drop measurement request
+
+        Issues the DROP MEASUREMENT InfluxQL query for *measurement* in
+        *database*.
+
+        If there is an error with the request, an exception will be raised from
+        the *requests* library.
+
+        :param str measurement: Measurement name to drop.
+        :param str database: Database in which measurement resides.
+        :return dict: Response JSON
+
+        """
+        resp = self._make_request(
+            IQL_DROP_MEASUREMENT, database=database, measurement=measurement)
         InfluxDB._check_and_raise(resp)
         return resp.json()
 
@@ -432,7 +454,7 @@ class InfluxDB:
         # Create the database
         try:
             db_resp = self.create_database(database)
-        except RequestException as err:
+        except RequestException:
             # XXX: We probably should include this exception to be raised or
             # report it
             return resp

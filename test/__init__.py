@@ -543,7 +543,7 @@ def test_safe_request():
             where='where')
 
         eq_(len(request.call_args_list), 3)
-        ok_(resp.json() is '200 OK')
+        ok_(resp.json() == '200 OK')
 
 
 @attr('services_required')
