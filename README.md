@@ -71,6 +71,9 @@ data = client.select_recent('mydatabase', 'mymeasurement', time_relative='1h')
 data = client.select_where('mydatabase', 'mymeasurement', where='time > 0', limit=1)
 
 # You can clean up after yourself, for example in testing environments
+client.drop_measurement('mymeasurement', 'mydatabase')
+
+# You can also drop the entire database, if necessary
 client.drop_database('mydatabase')
 
 # Subsequent client creation will give the same instance
@@ -166,6 +169,13 @@ Issues a `DROP DATABASE ...` request to the InfluxDB API. This will raise a 404
 HTTPError if the database does not exist.
 
 - **database** (*str*) - Database name
+
+#### `.drop_measurement(`*`measurement`*`, `*`database`*`)`
+
+Issues a `DROP MEASUREMENT ...` request to the InfluxDB API for the specified database.
+
+- **measurement** (*str*) - Measurement name
+- **database** (*str*) - Database in which *measurement* resides
 
 #### `.write(`*`database, measurement, fields, tags={}, time=None`*`)`
 
