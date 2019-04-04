@@ -170,7 +170,7 @@ HTTPError if the database does not exist.
 
 - **database** (*str*) - Database name
 
-#### `.drop_measurement(`*`measurement`*`, `*`database`*`)`
+#### `.drop_measurement(`*`measurement, database`*`)`
 
 Issues a `DROP MEASUREMENT ...` request to the InfluxDB API for the specified database.
 
