@@ -686,7 +686,7 @@ class InfluxDB:
         return where
 
 
-def client(url, **kwargs):
+def client(url, timeout=60, precision='u'):
     """
     Return an InfluxDB client.
 
@@ -694,4 +694,4 @@ def client(url, **kwargs):
     :param \*\*kwargs: Optional arguments to pass to client constructor
 
     """
-    return InfluxDB(url, **kwargs)
+    return InfluxDB(url, timeout, precision)
