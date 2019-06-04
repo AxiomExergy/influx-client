@@ -882,3 +882,38 @@ def test_select_into_existing():
                 ]
 
     eq_(values, expected)
+
+
+@attr('services_required')
+def test_missing_tags():
+    client = influx.client(_get_url())
+
+    # Field and tag schema shared between orig/new
+    fields = ['time', 'alpha', 'beta', 'class']
+    # site_id tag missing from fields
+    tags = {'class': 'VALUE', 'site_id': 'VALUE'}
+
+    # Orig values
+    values = [
+        [1521241703.092, 1, 1.1, 'test'],
+        [1521241705.092, 2, 1.2, 'test'],
+        [1521241707.092, 3, 1.3, 'test'],
+        [1521241709.092, 4, 1.4, 'test'],
+        [1521241711.092, 5, 1.5, 'test'],
+        [1521241703.092, 1, 1.1, 'fixed'],
+        [1521241705.092, 2, 1.2, 'fixed'],
+        [1521241707.092, 3, 1.3, 'fixed'],
+        [1521241709.092, 4, 1.4, 'fixed'],
+        [1521241711.092, 5, 1.5, 'fixed'],
+    ]
+    # Write orig values to DB
+    measurement = _get_unique_measurement()
+    client.write_many('test', measurement, fields, values, tags,
+                      time_field='time')
+
+    # Query back data for checking
+    resp = client.select_where('test', measurement,
+                               where="time > 0")
+    _, orig_values = client.unpack(resp)
+
+    eq_(len(values), len(orig_values))
