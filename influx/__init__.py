@@ -622,7 +622,7 @@ class InfluxDB:
             # Create a dict of value tags for each point and add as tags
             point_tags = {}
             for tag_key in value_tags:
-                point_tags[tag_key] = line.pop(tag_key)
+                point_tags[tag_key] = line.pop(tag_key, None)
             point['tags'] = point_tags
 
             if time_field and line.get(time_field, None):
