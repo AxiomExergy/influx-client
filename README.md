@@ -10,7 +10,8 @@ Exergy](http://www.axiomexergy.com).
 ## Prerequisites
 
 This client has only been tested and used against InfluxDB 1.5 and Python 3.5.
-If you want to support any other environments, please submit a pull request.
+There is basic support for Python 2.7 as of version `1.9.0`. If you want to
+support any other environments, please submit a pull request.
 
 ## Installation
 
