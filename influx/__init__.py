@@ -6,7 +6,10 @@ This module contains an InfluxDB client.
 """
 # System imports
 import logging
-from urllib import parse
+try:
+    from urllib import parse
+except ImportError:
+    import urlparse as parse
 
 # 3rd party imports
 import pytool
@@ -306,7 +309,7 @@ class InfluxDB:
         InfluxDB._check_and_raise(resp)
         return resp.json()
 
-    def select_into(self, *args, fields='*', where=None, group_by='*'):
+    def select_into(self, *args, **kwargs):
         """
         Returns count of data points moved by a SELECT ... INTO ... FROM ...
         query.
@@ -330,6 +333,10 @@ class InfluxDB:
             default: '*')
 
         """
+        fields = kwargs.pop('fields', '*')
+        where = kwargs.pop('where', None)
+        group_by = kwargs.pop('group_by', '*')
+
         # Handle variable args
         if len(args) < 1:
             raise TypeError("select_into() missing 2 required positional "

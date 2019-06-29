@@ -135,7 +135,7 @@ def test_make_many_lines_with_time_field():
 
 def _get_unique_measurement():
     """ Helper to consistently return a unique measurement name as needed. """
-    return 'test_measurement_{}'.format(int(time.monotonic() * 1e3))
+    return 'test_measurement_{}'.format(int(time.time() * 1e3))
 
 
 @attr('services_required')
@@ -863,7 +863,7 @@ def test_select_into_existing():
     values = sorted(values)
     for i in range(len(values)):
         # They come out with default precision 'u' so divide by 1M
-        values[i][0] = values[i][0] / 10**6
+        values[i][0] = 1.0 * values[i][0] / 10.0**6
 
     # We expect the 'test' values to be overwritten with the new values (except
     # the first one). We also expect the 'new' value to be included. Lastly we
