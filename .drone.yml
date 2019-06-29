@@ -4,7 +4,11 @@ pipeline:
     image: docker/compose:1.19.0
     volumes: ["/var/run/docker.sock:/var/run/docker.sock"]
     commands:
-      - docker-compose up --build --force-recreate --remove-orphans --exit-code-from influx_client
+      - docker-compose build --build-arg "PYTHON_IMAGE=python:3.5" influx_client
+      - docker-compose up --force-recreate --remove-orphans --exit-code-from influx_client
+      - docker-compose down
+      - docker-compose build --build-arg "PYTHON_IMAGE=python:2.7" influx_client
+      - docker-compose up --force-recreate --remove-orphans --exit-code-from influx_client
       - docker-compose down --rmi local --remove-orphans
     when:
       event: push
