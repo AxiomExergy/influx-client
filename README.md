@@ -97,7 +97,7 @@ This section describes development and contribution for *influx-client*.
 This section lists everyone who has contributed to this project.
 
 - [shakefu](https://github.com/shakefu) (*Creator, Maintainer*)
-- [ludovicurbain](https://github.com/ludovicurbain) (Python 2.7 support)
+- [ludovicurbain](https://github.com/ludovicurbain) - Python 2.7 support
 
 ### Repository Layout
 
