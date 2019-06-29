@@ -23,7 +23,7 @@ tests_require = [
 
 setup(
     name='influx-client',
-    version='1.8.1',
+    version='1.9.0',
     description="InfluxDB client",
     long_description=readme(),
     long_description_content_type="text/markdown",
@@ -48,6 +48,7 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 2.7',
         'Topic :: Software Development :: Libraries',
         'Topic :: Utilities',
         'Topic :: Database',
